@@ -1,0 +1,360 @@
+/* Khung bọc bao phủ trang chi tiết */
+.detail-page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  color: #333;
+}
+
+/* Định dạng thanh breadcrumb dẫn đường */
+.breadcrumb {
+  font-size: 13px;
+  color: #777;
+  text-align: left;
+  margin-bottom: 25px;
+}
+.breadcrumb a {
+  color: #555;
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  color: #2e7d32;
+  text-decoration: underline;
+}
+.breadcrumb span {
+  color: #1a1a1a;
+  font-weight: 500;
+}
+
+/* Layout chia 2 khối chính tương thích tỉ lệ */
+.detail-layout {
+  display: flex;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+/* ================= KHỐI HÌNH ẢNH (LEFT) ================= */
+.detail-image-gallery {
+  flex: 0 0 520px; /* Cố định độ rộng tối đa cho khối thư viện ảnh */
+}
+.main-image-box {
+  width: 100%;
+  height: 580px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #f7f7f7;
+  border: 1px solid #eee;
+}
+.main-image-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.thumbnail-list {
+  display: flex;
+  gap: 12px;
+  margin-top: 15px;
+}
+.thumb-item {
+  width: 80px;
+  height: 95px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background-color: #f7f7f7;
+  transition: all 0.2s;
+}
+.thumb-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.thumb-item:hover,
+.thumb-item.active {
+  border-color: #2e7d32;
+  opacity: 0.9;
+}
+
+/* ================= KHỐI THÔNG TIN CHI TIẾT (RIGHT) ================= */
+.detail-info-content {
+  flex: 1;
+  text-align: left;
+}
+
+/* Thanh nhãn meta nhỏ */
+.detail-meta-top {
+  display: flex;
+  gap: 15px;
+  font-size: 13px;
+  color: #777;
+  margin-bottom: 12px;
+}
+.detail-meta-top i {
+  margin-right: 4px;
+}
+
+/* Tiêu đề sản phẩm */
+.detail-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  line-height: 1.4;
+  margin: 0 0 16px 0;
+}
+
+/* Khối dòng giá */
+.detail-price-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #f9f9f9;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 25px;
+}
+.detail-current-price {
+  font-size: 26px;
+  font-weight: 800;
+  color: #d32f2f;
+}
+.detail-old-price {
+  font-size: 14px;
+  color: #999;
+  text-decoration: line-through;
+}
+.detail-discount-tag {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: #d32f2f;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* Bảng phân chia thuộc tính đồ cũ */
+.specs-table {
+  border: 1px solid #edf2f7;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 25px;
+}
+.spec-row {
+  display: flex;
+  padding: 12px 16px;
+  border-bottom: 1px solid #edf2f7;
+  font-size: 14px;
+}
+.spec-row:last-child {
+  border-bottom: none;
+}
+.spec-label {
+  width: 140px;
+  color: #718096;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+.spec-value {
+  color: #2d3748;
+}
+.badge-size {
+  background-color: #333;
+  color: #fff;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+.text-green {
+  color: #2e7d32;
+}
+
+/* Khối văn bản mô tả */
+.detail-description {
+  margin-bottom: 30px;
+}
+.detail-description h3 {
+  font-size: 16px;
+  margin: 0 0 10px 0;
+  color: #1a1a1a;
+}
+.detail-description p {
+  font-size: 14px;
+  color: #4a5568;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Nút CTA hành động mua sắm */
+.detail-cta-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 35px;
+}
+.btn-buy-now {
+  flex: 1;
+  padding: 15px;
+  background-color: #f57c00;
+  color: white;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.btn-buy-now:hover {
+  background-color: #e65100;
+}
+.btn-add-cart {
+  padding: 15px 25px;
+  background-color: #fff;
+  border: 2px solid #2e7d32;
+  color: #2e7d32;
+  font-size: 15px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+.btn-add-cart:hover {
+  background-color: #2e7d32;
+  color: white;
+}
+
+/* ================= THE PROFILE CARD NGƯỜI BÁN ================= */
+.seller-profile-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.01);
+}
+.seller-avatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.seller-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.seller-meta {
+  flex: 1;
+  padding: 0 18px;
+}
+.seller-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.seller-name-row h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2d3748;
+}
+.seller-badge-verified {
+  font-size: 11px;
+  color: #2e7d32;
+  background-color: rgba(46, 125, 50, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.seller-meta p {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #718096;
+}
+.seller-meta p:last-child {
+  margin-bottom: 0;
+}
+.seller-subtext {
+  color: #a0aec0 !important;
+}
+.seller-contact-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.btn-chat-seller {
+  padding: 8px 14px;
+  background-color: rgba(46, 125, 50, 0.08);
+  color: #2e7d32;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+.btn-chat-seller:hover {
+  background-color: #2e7d32;
+  color: white;
+}
+.btn-view-store {
+  padding: 8px 14px;
+  border: 1px solid #cbd5e0;
+  background-color: #fff;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  text-align: center;
+  transition: background-color 0.2s;
+}
+.btn-view-store:hover {
+  background-color: #edf2f7;
+}
+
+/* ================= RESPONSIVE TRÊN ĐIỆN THOẠI ================= */
+@media (max-width: 992px) {
+  .detail-layout {
+    flex-direction: column;
+  }
+  .detail-image-gallery {
+    width: 100%;
+    flex: none;
+  }
+  .main-image-box {
+    height: 450px;
+  }
+}
+
+@media (max-width: 576px) {
+  .seller-profile-card {
+    flex-direction: column;
+    text-align: center;
+    gap: 15px;
+  }
+  .seller-name-row {
+    justify-content: center;
+  }
+  .seller-meta {
+    padding: 0;
+  }
+  .seller-contact-actions {
+    width: 100%;
+    flex-direction: row;
+  }
+  .seller-contact-actions > * {
+    flex: 1;
+  }
+  .detail-cta-actions {
+    flex-direction: column;
+  }
+}

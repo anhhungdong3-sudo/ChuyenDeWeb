@@ -1,0 +1,319 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* --- 1. CẤU TRÚC CHÍNH (LAYOUT & WRAPPER) --- */
+.rw-register-page {
+  font-family: "Inter", sans-serif;
+  background: radial-gradient(circle at top right, #f8fafc 0%, #e2e8f0 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 20px;
+  box-sizing: border-box;
+}
+
+.rw-register-card {
+  background: #ffffff;
+  max-width: 920px;
+  width: 100%;
+  border-radius: 20px;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.06),
+    0 1px 3px rgba(15, 23, 42, 0.02);
+  padding: 50px;
+  transition: all 0.3s ease;
+}
+
+.rw-register-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.rw-register-header h2 {
+  font-size: 30px;
+  color: #0f172a;
+  font-weight: 700;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
+}
+
+.rw-register-header p {
+  color: #64748b;
+  font-size: 15px;
+}
+
+/* --- 2. THÀNH PHẦN FORM & ĐƯỜNG LƯỚI GRID --- */
+.rw-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 45px;
+}
+
+.rw-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.section-title {
+  font-size: 15px;
+  color: #1e293b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title i {
+  color: #10b981; /* Xanh lá ReWear */
+  font-size: 16px;
+}
+
+/* --- 3. ĐIỀU KHIỂN INPUT & ĐỊNH DẠNG TRƯỜNG --- */
+.rw-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rw-input-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
+
+.rw-input-group label span {
+  color: #ef4444;
+}
+
+.rw-input-group input,
+.rw-input-group select {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1e293b;
+  background-color: #ffffff;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+/* Đồng bộ padding cho tất cả các loại input */
+.rw-input-group input[type="date"],
+.rw-input-group select {
+  padding-left: 16px;
+}
+
+.rw-input-group input:focus,
+.rw-input-group select:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.12);
+  background-color: #ffffff;
+}
+
+.error-text {
+  color: #ef4444;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+.rw-input-row {
+  display: flex;
+  gap: 16px;
+}
+
+.width-50 {
+  flex: 1;
+}
+
+/* --- 4. KHU VỰC CHỌN ĐỊA CHỈ BẢN ĐỒ VIỆT NAM --- */
+.rw-address-cascading-selects {
+  background-color: #f8fafc;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* --- 5. CHẾ ĐỘ READONLY & DISABLED KHI ĐANG XÁC THỰC --- */
+.readonly-input,
+select.readonly-input {
+  background-color: #f1f5f9 !important;
+  color: #64748b !important;
+  border-color: #e2e8f0 !important;
+  cursor: text;
+}
+
+select.readonly-input {
+  cursor: not-allowed;
+}
+
+/* --- 6. KHU VỰC XỬ LÝ OTP XÁC THỰC --- */
+.otp-container-verify-wrapper {
+  margin-top: 35px;
+  animation: fadeInDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.otp-verify-box {
+  background: linear-gradient(to right, #f0fdf4, #ecfdf5);
+  border: 1.5px dashed #34d399;
+  padding: 24px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.03);
+}
+
+.otp-label {
+  color: #065f46 !important;
+  font-weight: 700;
+  text-align: center;
+  display: block;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.otp-input-row-flex {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.otp-input-row-flex input {
+  flex: 1.8;
+}
+
+.otp-input-field {
+  text-align: center;
+  font-size: 24px !important;
+  font-weight: 700;
+  letter-spacing: 8px;
+  border-color: #34d399 !important;
+  color: #065f46 !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.btn-confirm-otp-submit {
+  flex: 1.2;
+  background-color: #10b981;
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+.btn-confirm-otp-submit:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+}
+
+/* --- 7. BANNER BÁO LỖI HỆ THỐNG --- */
+.rw-backend-error {
+  background-color: #fef2f2;
+  border: 1px solid #fee2e2;
+  color: #b91c1c;
+  padding: 14px 18px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 30px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.02);
+}
+
+/* --- 8. PHẦN CHÂN TRANG & NÚT ĐĂNG KÝ CHÍNH --- */
+.rw-register-footer {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.rw-btn-submit {
+  background-color: #10b981;
+  color: #ffffff;
+  border: none;
+  padding: 16px 60px;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.25);
+}
+
+.rw-btn-submit:hover {
+  background-color: #059669;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.rw-btn-submit:disabled {
+  background-color: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.rw-register-footer p {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.login-link {
+  color: #10b981;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.login-link:hover {
+  color: #059669;
+  text-decoration: underline;
+}
+
+/* --- 9. HIỆU ỨNG ĐỘNG (ANIMATIONS) & RESPONSIVE --- */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 840px) {
+  .rw-form-grid {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+  .rw-register-card {
+    padding: 30px 20px;
+  }
+  .otp-input-row-flex {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .btn-confirm-otp-submit {
+    padding: 14px;
+    width: 100%;
+  }
+}

@@ -1,0 +1,155 @@
+/* ================= CHATBOX STYLES (MODERN & COMPACT) ================= */
+
+/* Wrapper bọc ngoài cùng: Cố định góc dưới màn hình */
+.chat-wrapper {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 99999 !important;
+}
+
+/* Nút bóng chat nổi: Thu nhỏ lại một chút (65px -> 55px) cho gọn gàng */
+.chat-bubble {
+  width: 55px;
+  height: 55px;
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(46, 125, 50, 0.4);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.chat-bubble:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 6px 20px rgba(46, 125, 50, 0.5);
+}
+
+/* Cửa sổ chat: Thu nhỏ kích thước (320x480 -> 300x440) */
+.chat-window {
+  position: absolute;
+  bottom: 75px;
+  right: 0;
+  width: 300px;
+  height: 440px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Header thanh chat */
+.chat-header {
+  background: #2e7d32;
+  color: white;
+  padding: 15px;
+  font-weight: 600;
+  font-size: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Vùng chứa nội dung tin nhắn */
+.chat-body {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background: #f7f9fa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Định dạng bong bóng tin nhắn tổng quát: Tự ôm khít chữ */
+.msg {
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 13.5px;
+  max-width: 75%; /* Tin nhắn chiếm tối đa 75% chiều rộng khung chat */
+  width: fit-content; /* QUAN TRỌNG: Giúp bong bóng co lại vừa khít với chữ */
+  word-wrap: break-word; /* Tự động xuống dòng khi chữ quá dài */
+  line-height: 1.4;
+}
+
+/* Tin nhắn của Bot: Nằm bên trái, nền trắng xám */
+.msg.bot {
+  background: #ffffff;
+  border: 1px solid #e5e5ea;
+  color: #333;
+  border-bottom-left-radius: 4px;
+  align-self: flex-start; /* Ép khung tin nhắn hít về lề trái */
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+}
+
+/* Tin nhắn của User (Bạn): Nằm bên phải, nền xanh lá */
+.msg.user {
+  background: #2e7d32;
+  color: white;
+  border-bottom-right-radius: 4px;
+  align-self: flex-end; /* Ép khung tin nhắn hít về lề phải */
+}
+
+/* Vùng nhập liệu phía dưới */
+.chat-footer {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border-top: 1px solid #f0f0f0;
+}
+
+.chat-footer input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 2px solid #f0f0f0;
+  border-radius: 20px;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.chat-footer input:focus {
+  border-color: #2e7d32;
+}
+
+/* Nút gửi hình tròn nhỏ gọn kèm icon máy bay */
+.chat-footer button {
+  background: #2e7d32;
+  color: white;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+}
+
+.chat-footer button:hover {
+  background: #1b5e20;
+}
+
+/* Hiệu ứng mượt mà khi mở khung chat */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
