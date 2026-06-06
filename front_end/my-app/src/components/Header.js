@@ -10,16 +10,16 @@ const Header = ({ isLoggedIn = false, onOpenAuth }) => {
         <div className="header-logo">
           <Link to="/">
             <h2>
-              ReWear<span>.vn</span>
+              ReBook<span>.vn</span>
             </h2>
           </Link>
         </div>
 
-        {/* Thanh tìm kiếm quần áo */}
+        {/* Thanh tìm kiếm sách */}
         <div className="header-search">
           <input
             type="text"
-            placeholder="Tìm kiếm áo thun, quần jean, váy cũ còn mới..."
+            placeholder="Tìm kiếm sách, tác giả, thể loại, ISBN..."
           />
           <button type="submit">
             <i className="fas fa-search"></i> Tìm kiếm
@@ -62,9 +62,9 @@ const Header = ({ isLoggedIn = false, onOpenAuth }) => {
             <span className="cart-count">0</span>
           </Link>
 
-          {/* Nút đặc thù cho web quần áo cũ */}
+          {/* Nút ký gửi sách */}
           <Link to="/sell" className="btn-sell">
-            <i className="fas fa-plus-circle"></i> Đăng bán đồ cũ
+            <i className="fas fa-plus-circle"></i> Ký gửi sách cũ
           </Link>
         </div>
       </div>
@@ -73,22 +73,22 @@ const Header = ({ isLoggedIn = false, onOpenAuth }) => {
       <nav className="header-navigation">
         <ul>
           <li>
-            <Link to="/products?cate=nam">Đồ Nam</Link>
+            <Link to="/products?cate=van-hoc">Sách Văn Học</Link>
           </li>
           <li>
-            <Link to="/products?cate=nu">Đồ Nữ</Link>
+            <Link to="/products?cate=kinh-te">Kinh Tế - Kinh Doanh</Link>
           </li>
           <li>
-            <Link to="/products?cate=tre-em">Trẻ Em</Link>
+            <Link to="/products?cate=ky-nang-song">Kỹ Năng Sống</Link>
           </li>
           <li>
-            <Link to="/products?condition=99">Hàng Mới 99%</Link>
+            <Link to="/products?cate=thieu-nhi">Sách Thiếu Nhi</Link>
           </li>
           <li>
-            <Link to="/products?price=dong-gia">Đồng Giá 49k-99k</Link>
+            <Link to="/products?cate=ngoai-van">Sách Ngoại Văn</Link>
           </li>
           <li>
-            <Link to="/blog">Mẹo Phối Đồ / Sống Xanh</Link>
+            <Link to="/blog">Góc Yêu Sách</Link>
           </li>
         </ul>
       </nav>
