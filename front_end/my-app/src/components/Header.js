@@ -1,8 +1,28 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import "../styles/Header.css";
 
 const Header = ({ isLoggedIn = false, onOpenAuth }) => {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+      } catch (e) {
+        console.error("Lỗi đọc thông tin user từ localStorage", e);
+      }
+    }
+  }, []);
+
+  const isUserLoggedIn = isLoggedIn || !!user;
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    window.location.reload();
+  };
+
   return (
     <header className="main-header">
       <div className="header-container">
@@ -28,8 +48,15 @@ const Header = ({ isLoggedIn = false, onOpenAuth }) => {
 
         {/* Hành động người dùng */}
         <div className="header-actions">
+          {/* Nút Admin nếu là tài khoản quản trị */}
+          {user && user.role === "ADMIN" && (
+            <Link to="/admin/revenue" className="admin-badge-link">
+              <i className="fas fa-crown"></i> Admin Panel
+            </Link>
+          )}
+
           {/* XỬ LÝ LOGIC ĐĂNG NHẬP / ĐĂNG KÝ TẠI ĐÂY */}
-          {!isLoggedIn ? (
+          {!isUserLoggedIn ? (
             <div className="auth-guest-buttons">
               {/* Bấm nút nào truyền chính xác tab đó vào hàm onOpenAuth */}
               <button
@@ -49,10 +76,25 @@ const Header = ({ isLoggedIn = false, onOpenAuth }) => {
             </div>
           ) : (
             /* Khi đã đăng nhập thành công thì đổi thành icon User */
-            <Link to="/profile" className="action-item">
-              <i className="far fa-user"></i>
-              <span>Tài khoản</span>
-            </Link>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <Link to="/profile" className="action-item">
+                <i className="far fa-user"></i>
+                <span>{user?.fullName || "Tài khoản"}</span>
+              </Link>
+              <button
+                onClick={handleLogout}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#e11d48",
+                  cursor: "pointer",
+                  fontSize: "13px",
+                  fontWeight: "600"
+                }}
+              >
+                Đăng xuất
+              </button>
+            </div>
           )}
 
           {/* Giỏ hàng */}

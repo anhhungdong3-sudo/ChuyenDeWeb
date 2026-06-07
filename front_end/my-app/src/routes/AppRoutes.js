@@ -12,12 +12,16 @@ import { Sell } from "../pages/Sell";
 import { ProductDetail } from "../pages/ProductDetail";
 import { Checkout } from "../pages/Checkout";
 import { Register } from "../pages/Register";
+import { AdminRevenue } from "../pages/AdminRevenue";
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Trang chủ */}
       <Route path="/" element={<Home />} />
+
+      {/* Trang quản trị doanh thu */}
+      <Route path="/admin/revenue" element={<AdminRevenue />} />
 
       {/* Trang danh sách sản phẩm */}
       <Route path="/products" element={<Products />} />
