@@ -12,16 +12,25 @@ import { Sell } from "../pages/Sell";
 import { ProductDetail } from "../pages/ProductDetail";
 import { Checkout } from "../pages/Checkout";
 import { Register } from "../pages/Register";
-import { AdminRevenue } from "../pages/AdminRevenue";
+import AdminLayout from "../components/admin/AdminLayout";
+import Dashboard from "../pages/admin/Dashboard";
+import AdProducts from "../pages/admin/Products";
+import Orders from "../pages/admin/Orders";
+import Users from "../pages/admin/Users";
+import Settings from "../pages/admin/Settings";
 
 const AppRoutes = () => {
   return (
     <Routes>
+      <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<Dashboard />} />
+          <Route path="products" element={<AdProducts />} />
+          <Route path="orders" element={<Orders />} />
+          <Route path="users" element={<Users />} />
+          <Route path="settings" element={<Settings />} />
+      </Route>
       {/* Trang chủ */}
       <Route path="/" element={<Home />} />
-
-      {/* Trang quản trị doanh thu */}
-      <Route path="/admin/revenue" element={<AdminRevenue />} />
 
       {/* Trang danh sách sản phẩm */}
       <Route path="/products" element={<Products />} />
@@ -57,6 +66,7 @@ const AppRoutes = () => {
         }
       />
     </Routes>
+    
   );
 };
 
