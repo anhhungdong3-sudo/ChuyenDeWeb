@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { productService } from "../services/api"; // Đường dẫn gọi Axios/Fetch API của dự án
 import "../styles/Sell.css";
@@ -86,12 +86,19 @@ export const Sell = () => {
 
     const productPayload = {
       title: formData.title,
+      author: formData.brand || "Nguoi ban ReWear",
+      publisher: "Old Bookstore",
+      publishYear: new Date().getFullYear(),
+      pages: 1,
       price: parseFloat(formData.sellPrice),
-      description: `[Độ mới: ${formData.condition}%] - Thương hiệu: ${formData.brand || "Không rõ"}. ${formData.description}. Địa điểm xem đồ: ${formData.location}`,
-      category: formData.category,
-      size: formData.size,
-      status: "AVAILABLE",
-      shopId: currentUser.id, // Gắn định danh ID người dùng thực tế
+      bookCondition: Number(formData.condition) >= 95 ? "LIKE_NEW" : "GOOD",
+      categoryId:
+        {
+          nam: 1,
+          nu: 2,
+          "tre-em": 4,
+          "phu-kien": 6,
+        }[formData.category] || 1,
       imageUrl: images[0] || "",
     };
 

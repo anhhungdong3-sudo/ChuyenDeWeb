@@ -15,13 +15,13 @@ const Footer = () => {
             hạt dẻ.
           </p>
           <div className="social-icons">
-            <a href="#">
+            <a href="https://www.facebook.com/" aria-label="Facebook">
               <i className="fab fa-facebook-f"></i>
             </a>
-            <a href="#">
+            <a href="https://www.instagram.com/" aria-label="Instagram">
               <i className="fab fa-instagram"></i>
             </a>
-            <a href="#">
+            <a href="https://www.tiktok.com/" aria-label="TikTok">
               <i className="fab fa-tiktok"></i>
             </a>
           </div>
