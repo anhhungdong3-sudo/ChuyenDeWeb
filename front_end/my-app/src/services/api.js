@@ -1,83 +1,146 @@
-import axios from "axios";
+import axiosClient from "../api/axiosClient";
 
-const BASE_URL = "http://localhost:8080/api";
+export const formatCurrency = (value) =>
+  new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
 
-const authHeaders = () => {
-  const userString = localStorage.getItem("user");
-  if (!userString) return {};
-  const user = JSON.parse(userString);
-  return user?.token ? { Authorization: `Bearer ${user.token}` } : {};
-};
-
-const mapBookToProduct = (book) => ({
+export const mapBook = (book) => ({
   ...book,
-  category: book.category?.name || book.category || "",
-  status: book.status === "APPROVED" ? "AVAILABLE" : book.status,
-  condition: book.bookCondition || book.condition,
+  categoryName: book.category?.name || book.categoryName || book.category || "Sách cũ",
+  statusLabel:
+    book.status === "APPROVED" || book.status === "AVAILABLE"
+      ? "Đang bán"
+      : book.status === "SOLD"
+        ? "Đã bán"
+        : book.status === "REJECTED"
+          ? "Bị từ chối"
+          : "Chờ duyệt",
+  conditionLabel:
+    {
+      NEW: "Mới",
+      LIKE_NEW: "Như mới",
+      GOOD: "Tốt",
+      FAIR: "Khá",
+      POOR: "Cần phục hồi",
+    }[book.bookCondition || book.condition] || "Tốt",
 });
 
-export const productService = {
-  getAllProducts: async () => {
-    const response = await axios.get(`${BASE_URL}/books`);
-    return response.data.map(mapBookToProduct);
+export const bookService = {
+  getAll: async (params = {}) => {
+    const response = await axiosClient.get("/books", { params });
+    return response.data.map(mapBook);
   },
 
-  getProductById: async (id) => {
-    const response = await axios.get(`${BASE_URL}/books/${id}`);
-    return mapBookToProduct(response.data);
+  search: async (query) => {
+    const response = await axiosClient.get("/books/search", { params: { query } });
+    return response.data.map(mapBook);
   },
 
-  createProduct: async (productData) => {
-    const response = await axios.post(`${BASE_URL}/books/sell`, productData, {
-      headers: authHeaders(),
-    });
+  getById: async (id) => {
+    const response = await axiosClient.get(`/books/${id}`);
+    return mapBook(response.data);
+  },
+
+  create: async (payload) => {
+    const response = await axiosClient.post("/books/sell", payload);
     return response.data;
   },
 
   getCategories: async () => {
-    const response = await axios.get(`${BASE_URL}/books/categories`);
+    const response = await axiosClient.get("/books/categories");
+    return response.data;
+  },
+
+  getPending: async () => {
+    const response = await axiosClient.get("/books/admin/pending");
+    return response.data.map(mapBook);
+  },
+
+  approve: async (id) => {
+    const response = await axiosClient.put(`/books/admin/approve/${id}`);
+    return response.data;
+  },
+
+  reject: async (id) => {
+    const response = await axiosClient.put(`/books/admin/reject/${id}`);
+    return response.data;
+  },
+};
+
+export const productService = {
+  getAllProducts: bookService.getAll,
+  getProductById: bookService.getById,
+  createProduct: bookService.create,
+  getCategories: bookService.getCategories,
+};
+
+export const authService = {
+  registerPending: async (formData) => {
+    const response = await axiosClient.post("/auth/register-pending", formData);
+    return response.data;
+  },
+
+  registerConfirm: async (email, otpCode) => {
+    const response = await axiosClient.post("/auth/register-confirm", { email, otpCode });
+    return response.data;
+  },
+
+  login: async (loginData) => {
+    const response = await axiosClient.post("/auth/login", loginData);
+    return response.data;
+  },
+};
+
+export const cartService = {
+  getCart: async () => {
+    const response = await axiosClient.get("/cart");
+    return response.data;
+  },
+
+  addToCart: async (bookId) => {
+    const response = await axiosClient.post(`/cart/add/${bookId}`);
+    return response.data;
+  },
+
+  updateQuantity: async (cartItemId, quantity) => {
+    const response = await axiosClient.put(`/cart/update/${cartItemId}`, { quantity });
+    return response.data;
+  },
+
+  removeFromCart: async (cartItemId) => {
+    const response = await axiosClient.delete(`/cart/remove/${cartItemId}`);
+    return response.data;
+  },
+};
+
+export const orderService = {
+  placeOrder: async (payload) => {
+    const response = await axiosClient.post("/orders/place", payload);
+    return response.data;
+  },
+
+  vnPayReturn: async (params) => {
+    const response = await axiosClient.get("/orders/vnpay-return", { params });
+    return response.data;
+  },
+
+  getMyOrders: async () => {
+    const response = await axiosClient.get("/orders/my-orders");
     return response.data;
   },
 };
 
 export const chatService = {
   getHistory: async (userId, shopId) => {
-    const response = await axios.get(`${BASE_URL}/chat/history`, {
-      params: { userId, shopId },
-      headers: authHeaders(),
-    });
+    const response = await axiosClient.get("/chat/history", { params: { userId, shopId } });
     return response.data;
   },
 
   sendMessage: async (userId, shopId, senderType, text) => {
-    const response = await axios.post(
-      `${BASE_URL}/chat/send`,
-      { userId, shopId, senderType, text },
-      { headers: authHeaders() },
-    );
-    return response.data;
-  },
-};
-
-export const authService = {
-  registerPending: async (formData) => {
-    const response = await axios.post(`${BASE_URL}/auth/register-pending`, formData);
-    return response.data;
-  },
-
-  registerConfirm: async (email, otpCode) => {
-    const response = await axios.post(`${BASE_URL}/auth/register-confirm`, {
-      email,
-      otpCode,
-    });
-    return response.data;
-  },
-
-  login: async (loginData) => {
-    const response = await axios.post(`${BASE_URL}/auth/login`, loginData);
-    if (response.data) {
-      localStorage.setItem("user", JSON.stringify(response.data));
-    }
+    const response = await axiosClient.post("/chat/send", { userId, shopId, senderType, text });
     return response.data;
   },
 };
