@@ -1,73 +1,76 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import Home from "../pages/Home";
+import BooksPage from "../pages/BooksPage";
+import BookDetail from "../pages/BookDetail";
+import CartPage from "../pages/CartPage";
+import CheckoutPage from "../pages/CheckoutPage";
+import VnPayReturn from "../pages/VnPayReturn";
+import Sell from "../pages/Sell";
+import Profile from "../pages/Profile";
+import Login from "../pages/Login";
+import Register from "../pages/Register";
+import AdminApproval from "../pages/AdminApproval";
+import AdminDashboard from "../pages/AdminDashboard";
+import { useAuth } from "../context/AuthContext";
 
-// Import trực tiếp từ thư mục pages của bạn
-import { Home } from "../pages/Home";
-import { Products } from "../pages/Products";
+const ProtectedRoute = ({ children }) => {
+  const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
-// Nếu bạn đã tách luôn Cart và ProductDetail sang pages thì import ở đây,
-// nếu chưa thì tạm thời giữ nguyên import từ placeholderPages nhé
-import { Cart } from "../pages/Cart";
-import { Sell } from "../pages/Sell";
-import { ProductDetail } from "../pages/ProductDetail";
-import { Checkout } from "../pages/Checkout";
-import { Register } from "../pages/Register";
-import AdminLayout from "../components/admin/AdminLayout";
-import Dashboard from "../pages/admin/Dashboard";
-import AdProducts from "../pages/admin/Products";
-import Orders from "../pages/admin/Orders";
-import Users from "../pages/admin/Users";
-import Settings from "../pages/admin/Settings";
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+  }
 
-const AppRoutes = () => {
-  return (
-    <Routes>
-      <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="products" element={<AdProducts />} />
-          <Route path="orders" element={<Orders />} />
-          <Route path="users" element={<Users />} />
-          <Route path="settings" element={<Settings />} />
-      </Route>
-      {/* Trang chủ */}
-      <Route path="/" element={<Home />} />
-
-      {/* Trang danh sách sản phẩm */}
-      <Route path="/products" element={<Products />} />
-
-      {/* Trang giỏ hàng */}
-      <Route path="/cart" element={<Cart />} />
-
-      {/* Trang chi tiết sản phẩm */}
-      <Route path="/product/:id" element={<ProductDetail />} />
-
-      {/* Trang đăng bán */}
-      <Route path="/sell" element={<Sell />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/register" element={<Register />} />
-      {/* Trang 404 khi không tìm thấy URL */}
-      <Route
-        path="*"
-        element={
-          <div
-            style={{
-              padding: "80px 20px",
-              textAlign: "center",
-              minHeight: "60vh",
-            }}
-          >
-            <h2 style={{ fontSize: "32px", color: "#d32f2f" }}>
-              404 - Không Tìm Thấy Trang
-            </h2>
-            <p style={{ color: "#666", marginTop: "10px" }}>
-              Đường dẫn này không tồn tại trên hệ thống ReWear.vn
-            </p>
-          </div>
-        }
-      />
-    </Routes>
-    
-  );
+  return children;
 };
+
+const AdminRoute = ({ children }) => {
+  const { isAuthenticated, isAdmin } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: "/admin" }} />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+const NotFound = () => (
+  <div className="container page-section">
+    <div className="state-box">
+      <h1>404</h1>
+      <p>Trang bạn tìm không tồn tại trong Old Bookstore.</p>
+      <a className="btn btn-primary" href="/">Về trang chủ</a>
+    </div>
+  </div>
+);
+
+const AppRoutes = () => (
+  <Routes>
+    <Route path="/" element={<Home />} />
+    <Route path="/books" element={<BooksPage />} />
+    <Route path="/books/:id" element={<BookDetail />} />
+    <Route path="/products" element={<Navigate to="/books" replace />} />
+    <Route path="/product/:id" element={<BookDetail />} />
+    <Route path="/login" element={<Login />} />
+    <Route path="/register" element={<Register />} />
+
+    <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+    <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+    <Route path="/vnpay-return" element={<ProtectedRoute><VnPayReturn /></ProtectedRoute>} />
+    <Route path="/sell" element={<ProtectedRoute><Sell /></ProtectedRoute>} />
+    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+
+    <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+    <Route path="/admin/approval" element={<AdminRoute><AdminApproval /></AdminRoute>} />
+    <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+
+    <Route path="*" element={<NotFound />} />
+  </Routes>
+);
 
 export default AppRoutes;
