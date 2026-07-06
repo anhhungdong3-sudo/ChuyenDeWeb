@@ -48,7 +48,9 @@ const Profile = () => {
                 <article key={order.id} className="order-row">
                   <span>Đơn #{order.id}</span>
                   <strong>{formatCurrency(order.totalAmount)}</strong>
-                  <small>{order.status || "Đang xử lý"}</small>
+                  <small className={`order-status-badge order-status-${(order.orderStatus || "PENDING").toLowerCase()}`}>
+                    {order.statusLabel}
+                  </small>
                 </article>
               ))}
             </div>

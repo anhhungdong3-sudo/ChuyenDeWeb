@@ -138,6 +138,19 @@ export const cartService = {
   },
 };
 
+export const ORDER_STATUS_LABELS = {
+  PENDING: "Chờ xử lý",
+  PROCESSING: "Đang xử lý",
+  SHIPPING: "Đang giao",
+  COMPLETED: "Đã giao",
+  CANCELLED: "Đã hủy",
+};
+
+export const mapOrder = (order) => ({
+  ...order,
+  statusLabel: ORDER_STATUS_LABELS[order.orderStatus] || "Chờ xử lý",
+});
+
 export const orderService = {
   placeOrder: async (payload) => {
     const response = await axiosClient.post("/orders/place", payload);
@@ -151,6 +164,16 @@ export const orderService = {
 
   getMyOrders: async () => {
     const response = await axiosClient.get("/orders/my-orders");
+    return response.data.map(mapOrder);
+  },
+
+  getAllOrders: async () => {
+    const response = await axiosClient.get("/orders/admin");
+    return response.data.map(mapOrder);
+  },
+
+  updateOrderStatus: async (id, orderStatus) => {
+    const response = await axiosClient.put(`/orders/admin/${id}/status`, { orderStatus });
     return response.data;
   },
 };
