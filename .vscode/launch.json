@@ -2,6 +2,20 @@
   "configurations": [
     {
       "type": "java",
+      "name": "TestBCrypt",
+      "request": "launch",
+      "mainClass": "main.java.com.exam.TestBCrypt",
+      "projectName": ""
+    },
+    {
+      "type": "java",
+      "name": "Application",
+      "request": "launch",
+      "mainClass": "com.exam.Application",
+      "projectName": ""
+    },
+    {
+      "type": "java",
       "name": "Spring Boot-Application<second_hand>",
       "request": "launch",
       "cwd": "${workspaceFolder}",

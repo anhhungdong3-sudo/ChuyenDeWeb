@@ -1,0 +1,22 @@
+.admin-layout{
+    display:flex;
+    min-height:100vh;
+    background:#f4f6fb;
+}
+
+.admin-main{
+    flex:1;
+    padding:30px;
+    overflow:auto;
+}
+
+.admin-content {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .admin-main {
+        margin-left: 0;
+        padding: 16px;
+    }
+}

@@ -10,9 +10,14 @@ import Sell from "../pages/Sell";
 import Profile from "../pages/Profile";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-import AdminApproval from "../pages/AdminApproval";
-import AdminDashboard from "../pages/AdminDashboard";
+import Dashboard from "../pages/admin/Dashboard";
+import Products from "../pages/admin/Products";
+import Orders from "../pages/admin/Orders";
+import Users from "../pages/admin/Users";
+import Settings from "../pages/admin/Settings";
+import AdminLayout from "../components/admin/AdminLayout";
 import { useAuth } from "../context/AuthContext";
+import UserLayout from "../layouts/UserLayout";
 
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
@@ -51,26 +56,31 @@ const NotFound = () => (
 
 const AppRoutes = () => (
   <Routes>
-    <Route path="/" element={<Home />} />
-    <Route path="/books" element={<BooksPage />} />
-    <Route path="/books/:id" element={<BookDetail />} />
-    <Route path="/products" element={<Navigate to="/books" replace />} />
-    <Route path="/product/:id" element={<BookDetail />} />
-    <Route path="/login" element={<Login />} />
-    <Route path="/register" element={<Register />} />
 
-    <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
-    <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-    <Route path="/vnpay-return" element={<ProtectedRoute><VnPayReturn /></ProtectedRoute>} />
-    <Route path="/sell" element={<ProtectedRoute><Sell /></ProtectedRoute>} />
-    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+    <Route element={<UserLayout />}>
+        <Route path="/" element={<Home />} />
+        <Route path="/books" element={<BooksPage />} />
+        <Route path="/books/:id" element={<BookDetail />} />
+        <Route path="/products" element={<Navigate to="/books" replace />} />
+        <Route path="/product/:id" element={<BookDetail />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute> }/>
+        <Route path="/checkout" element={<ProtectedRoute> <CheckoutPage /> </ProtectedRoute> }/>
+        <Route path="/sell" element={ <ProtectedRoute> <Sell /> </ProtectedRoute> } />
+        <Route path="/profile" element={ <ProtectedRoute> <Profile /> </ProtectedRoute> }/>
+        <Route path="/vnpay-return" element={<ProtectedRoute><VnPayReturn /></ProtectedRoute>}/>
+    </Route>
 
-    <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-    <Route path="/admin/approval" element={<AdminRoute><AdminApproval /></AdminRoute>} />
-    <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-
-    <Route path="*" element={<NotFound />} />
-  </Routes>
+    <Route path="/admin" element={ <AdminRoute> <AdminLayout /></AdminRoute>}>
+        <Route index element={<Navigate to="dashboard" replace />}/>
+        <Route path="dashboard" element={<Dashboard />}/>
+        <Route path="products" element={<Products />}/>
+        <Route path="orders" element={<Orders />}/>
+        <Route path="users" element={<Users />}/>
+        <Route path="settings" element={<Settings />}/>
+    </Route>
+</Routes>
 );
 
 export default AppRoutes;
