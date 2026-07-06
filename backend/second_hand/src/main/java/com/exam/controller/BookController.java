@@ -149,4 +149,20 @@ public class BookController {
     public ResponseEntity<Book> createBook( @RequestBody BookDTO dto){
         return ResponseEntity.ok(bookService.createBook(dto));
     }
+
+    // Sửa thông tin sách (Chỉ ADMIN)
+    @PutMapping("/admin/{id}")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<?> updateBook(@PathVariable Long id, @Valid @RequestBody BookDTO dto) {
+        Book updatedBook = bookService.updateBook(id, dto);
+        return ResponseEntity.ok(Map.of("message", "Cập nhật sách thành công!", "book", updatedBook));
+    }
+
+    // Xóa sách (Chỉ ADMIN)
+    @DeleteMapping("/admin/{id}")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<?> deleteBook(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return ResponseEntity.ok(Map.of("message", "Xóa sách thành công!"));
+    }
 }

@@ -185,7 +185,7 @@ function Dashboard() {
           <p>
             Phân tích hiệu năng bán hàng,
             phí commission và dòng tiền
-            trên sàn ReBook.vn
+            trên sàn
           </p>
         </div>
 

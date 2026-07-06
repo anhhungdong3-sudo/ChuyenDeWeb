@@ -15,4 +15,6 @@ public interface BookService {
     List<Book> getPendingBooks();
     List<Book> getAllBooks();
     Book createBook(BookDTO dto);
+    Book updateBook(Long id, BookDTO dto);
+    void deleteBook(Long id);
 }

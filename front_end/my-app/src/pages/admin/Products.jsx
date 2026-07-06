@@ -10,6 +10,7 @@ function Products() {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [editingBookId, setEditingBookId] = useState(null);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -55,9 +56,46 @@ function Products() {
     setImagePreview(URL.createObjectURL(file));
   };
 
+  const handleEditClick = (book) => {
+    setEditingBookId(book.id);
+    setNewBook({
+      title: book.title || "",
+      author: book.author || "",
+      publisher: book.publisher || "",
+      publishYear: book.publishYear || new Date().getFullYear(),
+      pages: book.pages || "",
+      price: book.price || "",
+      quantity: book.quantity || 1,
+      imageUrl: book.imageUrl || "",
+      status: book.status,
+      bookCondition: book.bookCondition || "NEW",
+      shopId: book.shopId,
+      categoryId: book.category?.id || (categories[0]?.id ?? 1),
+    });
+    setImageFile(null);
+    setImagePreview(book.imageUrl || "");
+    setShowModal(true);
+  };
+
+  const handleDelete = async (book) => {
+    if (!window.confirm(`Bạn có chắc muốn xóa sách "${book.title}"?`)) return;
+    try {
+      await bookService.remove(book.id);
+      loadBooks();
+    } catch (error) {
+      console.error(error);
+      alert("Xóa sách thất bại!");
+    }
+  };
+
   const loadBooks = async () => {
     try {
-      const res = await axios.get("http://localhost:8080/api/books");
+      const token = localStorage.getItem("token");
+      const res = await axios.get("http://localhost:8080/api/books/admin", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log(res.data);
 
@@ -69,10 +107,29 @@ function Products() {
     }
   };
 
+  const handleApprove = async (id) => {
+    try {
+      await bookService.approve(id);
+      loadBooks();
+    } catch (error) {
+      console.error(error);
+      alert("Duyệt sách thất bại!");
+    }
+  };
+
+  const handleReject = async (id) => {
+    if (!window.confirm("Bạn có chắc muốn từ chối sách này?")) return;
+    try {
+      await bookService.reject(id);
+      loadBooks();
+    } catch (error) {
+      console.error(error);
+      alert("Từ chối sách thất bại!");
+    }
+  };
+
   const saveBook = async () => {
     try {
-      const token = localStorage.getItem("token");
-
       let imageUrl = newBook.imageUrl;
       if (imageFile) {
         setUploading(true);
@@ -81,18 +138,26 @@ function Products() {
         setUploading(false);
       }
 
-      await axios.post("http://localhost:8080/api/books/admin",
-        { ...newBook, imageUrl },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const payload = { ...newBook, imageUrl };
 
-      alert("Thêm sách thành công!");
+      if (editingBookId) {
+        await bookService.update(editingBookId, payload);
+        alert("Cập nhật sách thành công!");
+      } else {
+        const token = localStorage.getItem("token");
+        await axios.post("http://localhost:8080/api/books/admin",
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        alert("Thêm sách thành công!");
+      }
 
       setShowModal(false);
+      setEditingBookId(null);
       setNewBook(initialNewBook);
       setImageFile(null);
       setImagePreview("");
@@ -102,7 +167,7 @@ function Products() {
     } catch (error) {
       console.error(error);
       setUploading(false);
-      alert("Thêm sách thất bại!");
+      alert(editingBookId ? "Cập nhật sách thất bại!" : "Thêm sách thất bại!");
     }
   };
 
@@ -126,7 +191,13 @@ function Products() {
         </div>
 
         <div className="admin-header-controls">
-          <button className="btn-add-product" onClick={() => setShowModal(true)}>
+          <button className="btn-add-product" onClick={() => {
+            setEditingBookId(null);
+            setNewBook(initialNewBook);
+            setImageFile(null);
+            setImagePreview("");
+            setShowModal(true);
+          }}>
             <i className="fas fa-plus"></i>
             Thêm sản phẩm
           </button>
@@ -155,9 +226,9 @@ function Products() {
         </div>
 
         <div className="summary-card">
-          <h3>Hết hàng</h3>
+          <h3>Từ chối</h3>
           <span>
-            {books.filter(b => b.status !== "APPROVED").length}
+            {books.filter(b => b.status === "REJECTED").length}
           </span>
         </div>
       </div>
@@ -201,10 +272,23 @@ function Products() {
                   <td>{book.category?.name}</td>
                   <td>{(book.price ?? 0).toLocaleString()} đ</td>
                   <td>{book.bookCondition}</td>
-                  <td>{book.status}</td>
                   <td>
-                    <button>Sửa</button>
-                    <button>Xóa</button>
+                    <span className={`status-badge status-${book.status?.toLowerCase()}`}>
+                      {book.status === "APPROVED" && "Đang bán"}
+                      {book.status === "PENDING_APPROVAL" && "Chờ duyệt"}
+                      {book.status === "REJECTED" && "Bị từ chối"}
+                      {book.status === "SOLD" && "Đã bán"}
+                    </span>
+                  </td>
+                  <td>
+                    <button onClick={() => handleEditClick(book)}>Sửa</button>
+                    <button onClick={() => handleDelete(book)}>Xóa</button>
+                    {book.status === "PENDING_APPROVAL" && (
+                      <>
+                        <button className="btn-approve" onClick={() => handleApprove(book.id)}>Duyệt</button>
+                        <button className="btn-reject" onClick={() => handleReject(book.id)}>Từ chối</button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))
@@ -246,7 +330,7 @@ function Products() {
             onClick={(e) => e.stopPropagation()}
           >
 
-          <h2>Thêm sách mới</h2>
+          <h2>{editingBookId ? "Sửa thông tin sách" : "Thêm sách mới"}</h2>
 
           <div className="form-grid">
 
@@ -392,6 +476,8 @@ function Products() {
               className="btn-cancel"
               onClick={() => {
                 setShowModal(false);
+                setEditingBookId(null);
+                setNewBook(initialNewBook);
                 setImageFile(null);
                 setImagePreview("");
               }}
@@ -404,7 +490,7 @@ function Products() {
               onClick={saveBook}
               disabled={uploading}
             >
-              {uploading ? "Đang tải ảnh lên..." : "Thêm sách"}
+              {uploading ? "Đang tải ảnh lên..." : editingBookId ? "Lưu thay đổi" : "Thêm sách"}
             </button>
 
           </div>
