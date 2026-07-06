@@ -14,7 +14,7 @@ function Sidebar({ adminUser, handleLogout }) {
           <i className="fas fa-crown"></i>
 
           <h2>
-            ReBook<span>Admin</span>
+            OldBook<span>Admin</span>
           </h2>
         </Link>
       </div>
@@ -70,17 +70,6 @@ function Sidebar({ adminUser, handleLogout }) {
           <span>Quản lý người dùng</span>
         </NavLink>
 
-        <NavLink
-          to="/admin/settings"
-          className={({ isActive }) =>
-            `sidebar-menu-item ${
-              isActive ? "active" : ""
-            }`
-          }
-        >
-          <i className="fas fa-sliders-h"></i>
-          <span>Cài đặt hệ thống</span>
-        </NavLink>
 
         <div className="sidebar-menu-divider"></div>
 

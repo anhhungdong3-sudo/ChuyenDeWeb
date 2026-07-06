@@ -114,4 +114,31 @@ public class BookServiceImpl implements BookService {
     book.setShopId(1L);
     return bookRepository.save(book);
 }
+
+    @Override
+    public Book updateBook(Long id, BookDTO dto) {
+        Book book = getBookById(id);
+
+        Category category = categoryRepository.findById(dto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Danh mục không tồn tại!"));
+
+        book.setTitle(dto.getTitle());
+        book.setAuthor(dto.getAuthor());
+        book.setPublisher(dto.getPublisher());
+        book.setPublishYear(dto.getPublishYear());
+        book.setPages(dto.getPages());
+        book.setPrice(dto.getPrice());
+        book.setQuantity(dto.getQuantity());
+        book.setImageUrl(dto.getImageUrl());
+        book.setCategory(category);
+        book.setBookCondition(BookCondition.valueOf(dto.getBookCondition().toUpperCase()));
+
+        return bookRepository.save(book);
+    }
+
+    @Override
+    public void deleteBook(Long id) {
+        Book book = getBookById(id);
+        bookRepository.delete(book);
+    }
 }

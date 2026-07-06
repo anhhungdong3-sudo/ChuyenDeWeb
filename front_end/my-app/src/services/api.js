@@ -51,6 +51,16 @@ export const bookService = {
     return response.data;
   },
 
+  update: async (id, payload) => {
+    const response = await axiosClient.put(`/books/admin/${id}`, payload);
+    return response.data;
+  },
+
+  remove: async (id) => {
+    const response = await axiosClient.delete(`/books/admin/${id}`);
+    return response.data;
+  },
+
   getCategories: async () => {
     const response = await axiosClient.get("/books/categories");
     return response.data;
