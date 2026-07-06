@@ -17,17 +17,15 @@ function AdminLayout() {
   };
 
   return (
-    <div className="admin-dashboard-layout">
+    <div className="admin-layout">
       <Sidebar
         adminUser={adminUser}
         handleLogout={handleLogout}
       />
 
-      <main className="admin-main-content">
-        <div className="admin-content-container">
+        <div className="admin-main">
           <Outlet />
         </div>
-      </main>
     </div>
   );
 }
