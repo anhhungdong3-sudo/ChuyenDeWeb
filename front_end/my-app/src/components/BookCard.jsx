@@ -17,6 +17,7 @@ const BookCard = ({ book, onAddToCart }) => (
       <Link to={`/books/${book.id}`} className="book-title">{book.title}</Link>
       <p className="book-author">{book.author || "Chưa cập nhật tác giả"}</p>
       <StarRating value={book.rating || 4.7} count={book.reviewCount || 12} />
+      <p className="book-quantity">Số lượng: {book.quantity ?? 0}</p>
       <div className="book-card-footer">
         <strong>{formatCurrency(book.price)}</strong>
         <button className="btn btn-sm btn-primary" type="button" onClick={() => onAddToCart?.(book)}>

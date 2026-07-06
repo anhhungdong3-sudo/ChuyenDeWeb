@@ -11,9 +11,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/books")
@@ -70,6 +77,42 @@ public class BookController {
         ));
     }
 
+    // Upload ảnh bìa sách từ máy (Cần đăng nhập - dùng chung cho user đăng bán và admin)
+    @PostMapping("/upload-image")
+    public ResponseEntity<?> uploadImage(@RequestParam("file") MultipartFile file) {
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng chọn file ảnh"));
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ResponseEntity.badRequest().body(Map.of("message", "File tải lên phải là hình ảnh"));
+        }
+
+        try {
+            String uploadDir = "uploads/books";
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String originalName = file.getOriginalFilename();
+            String extension = "";
+            if (originalName != null && originalName.contains(".")) {
+                extension = originalName.substring(originalName.lastIndexOf("."));
+            }
+            String fileName = UUID.randomUUID() + extension;
+
+            Path filePath = uploadPath.resolve(fileName);
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+            String imageUrl = "/uploads/books/" + fileName;
+            return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().body(Map.of("message", "Tải ảnh lên thất bại: " + e.getMessage()));
+        }
+    }
+
     // === ADMIN ENDPOINTS ===
 
     // Lấy danh sách sách đang chờ duyệt (Chỉ ADMIN)
@@ -93,5 +136,17 @@ public class BookController {
     public ResponseEntity<?> rejectBook(@PathVariable Long id) {
         Book book = bookService.rejectBook(id);
         return ResponseEntity.ok(Map.of("message", "Sách đã bị từ chối.", "book", book));
+    }
+
+    @GetMapping("/admin")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<List<Book>> getAllBooks() {
+        return ResponseEntity.ok(bookService.getAllBooks());
+    }
+
+    @PostMapping("/admin")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<Book> createBook( @RequestBody BookDTO dto){
+        return ResponseEntity.ok(bookService.createBook(dto));
     }
 }

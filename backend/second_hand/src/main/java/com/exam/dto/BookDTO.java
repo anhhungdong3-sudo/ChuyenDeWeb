@@ -33,6 +33,10 @@ public class BookDTO {
     @Min(value = 1, message = "Giá bán phải lớn hơn 0")
     private Double price;
 
+    @NotNull(message = "Số lượng không được để trống")
+    @Min(value = 1, message = "Số lượng phải lớn hơn 0")
+    private Integer quantity;
+
     private String imageUrl;
 
     @NotBlank(message = "Tình trạng sách không được để trống")

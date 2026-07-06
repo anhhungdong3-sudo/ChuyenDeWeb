@@ -70,6 +70,7 @@ const BookDetail = () => {
             <div><dt>Nhà xuất bản</dt><dd>{book.publisher || "Chưa cập nhật"}</dd></div>
             <div><dt>Năm xuất bản</dt><dd>{book.publishYear || "Chưa rõ"}</dd></div>
             <div><dt>Số trang</dt><dd>{book.pages || "Chưa rõ"}</dd></div>
+            <div><dt>Số lượng</dt><dd>{book.quantity ?? 0}</dd></div>
             <div><dt>Người bán</dt><dd>Shop #{book.shopId}</dd></div>
             <div><dt>Trạng thái</dt><dd>{book.statusLabel}</dd></div>
           </dl>

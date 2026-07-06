@@ -27,7 +27,10 @@ export const AuthProvider = ({ children }) => {
     setAuthLoading(true);
     try {
       const loggedInUser = await authService.login(credentials);
+      console.log(loggedInUser);
       localStorage.setItem("user", JSON.stringify(loggedInUser));
+      localStorage.setItem("token", loggedInUser.token);
+      localStorage.setItem("role", loggedInUser.role);
       setUser(loggedInUser);
       return loggedInUser;
     } finally {
