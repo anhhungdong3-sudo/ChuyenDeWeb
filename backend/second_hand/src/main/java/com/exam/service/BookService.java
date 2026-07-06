@@ -13,4 +13,6 @@ public interface BookService {
     Book approveBook(Long id);
     Book rejectBook(Long id);
     List<Book> getPendingBooks();
+    List<Book> getAllBooks();
+    Book createBook(BookDTO dto);
 }

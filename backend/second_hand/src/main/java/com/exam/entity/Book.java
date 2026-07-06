@@ -32,6 +32,9 @@ public class Book {
     @Column(nullable = false)
     private Double price;
 
+    @Column(nullable = false, columnDefinition = "INT DEFAULT 1")
+    private Integer quantity = 1;
+
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 

@@ -60,6 +60,7 @@ public class BookServiceImpl implements BookService {
         book.setPublishYear(dto.getPublishYear());
         book.setPages(dto.getPages());
         book.setPrice(dto.getPrice());
+        book.setQuantity(dto.getQuantity());
         book.setImageUrl(dto.getImageUrl());
         book.setStatus("PENDING_APPROVAL");
         book.setBookCondition(BookCondition.valueOf(dto.getBookCondition().toUpperCase()));
@@ -86,4 +87,31 @@ public class BookServiceImpl implements BookService {
     public List<Book> getPendingBooks() {
         return bookRepository.findByStatusOrderByCreatedAtAsc("PENDING_APPROVAL");
     }
+
+    @Override
+    public List<Book> getAllBooks() {
+        return bookRepository.findAll();
+    }
+
+   @Override
+    public Book createBook(BookDTO dto) {
+    Category category = categoryRepository.findById(dto.getCategoryId())
+            .orElseThrow(() -> new RuntimeException("Category not found"));
+
+    Book book = new Book();
+
+    book.setTitle(dto.getTitle());
+    book.setAuthor(dto.getAuthor());
+    book.setPublisher(dto.getPublisher());
+    book.setPublishYear(dto.getPublishYear());
+    book.setPages(dto.getPages());
+    book.setPrice(dto.getPrice());
+    book.setQuantity(dto.getQuantity());
+    book.setImageUrl(dto.getImageUrl());
+    book.setCategory(category);
+    book.setBookCondition(BookCondition.valueOf(dto.getBookCondition()));
+    book.setStatus("APPROVED");
+    book.setShopId(1L);
+    return bookRepository.save(book);
+}
 }

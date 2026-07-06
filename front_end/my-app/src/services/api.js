@@ -1,5 +1,7 @@
 import axiosClient from "../api/axiosClient";
 
+const API_ORIGIN = (process.env.REACT_APP_API_URL || "http://localhost:8080/api").replace(/\/api\/?$/, "");
+
 export const formatCurrency = (value) =>
   new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -52,6 +54,16 @@ export const bookService = {
   getCategories: async () => {
     const response = await axiosClient.get("/books/categories");
     return response.data;
+  },
+
+  uploadImage: async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await axiosClient.post("/books/upload-image", formData, {
+      headers: { "Content-Type": undefined },
+    });
+    const relativeUrl = response.data.imageUrl || "";
+    return { ...response.data, imageUrl: `${API_ORIGIN}${relativeUrl}` };
   },
 
   getPending: async () => {

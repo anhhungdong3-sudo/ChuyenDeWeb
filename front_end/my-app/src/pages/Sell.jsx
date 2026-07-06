@@ -12,10 +12,14 @@ const Sell = () => {
     publishYear: currentYear,
     pages: "",
     price: "",
+    quantity: 1,
     imageUrl: "",
     bookCondition: "GOOD",
     categoryId: "",
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -24,25 +28,42 @@ const Sell = () => {
     bookService.getCategories().then(setCategories).catch(() => setCategories([]));
   }, []);
 
+  const handleImageChange = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setSubmitting(true);
     setError("");
     setMessage("");
 
-    const payload = {
-      title: form.title.trim(),
-      author: form.author.trim(),
-      publisher: form.publisher.trim(),
-      publishYear: Number(form.publishYear),
-      pages: Number(form.pages),
-      price: Number(form.price),
-      imageUrl: form.imageUrl.trim(),
-      bookCondition: form.bookCondition,
-      categoryId: Number(form.categoryId),
-    };
-
     try {
+      let imageUrl = form.imageUrl;
+
+      if (imageFile) {
+        setUploading(true);
+        const uploadResult = await bookService.uploadImage(imageFile);
+        imageUrl = uploadResult.imageUrl;
+        setUploading(false);
+      }
+
+      const payload = {
+        title: form.title.trim(),
+        author: form.author.trim(),
+        publisher: form.publisher.trim(),
+        publishYear: Number(form.publishYear),
+        pages: Number(form.pages),
+        price: Number(form.price),
+        quantity: Number(form.quantity),
+        imageUrl,
+        bookCondition: form.bookCondition,
+        categoryId: Number(form.categoryId),
+      };
+
       const result = await bookService.create(payload);
       setMessage(result.message || "Đăng sách thành công. Bài đăng đang chờ admin duyệt.");
       setForm({
@@ -52,11 +73,15 @@ const Sell = () => {
         publishYear: currentYear,
         pages: "",
         price: "",
+        quantity: 1,
         imageUrl: "",
         bookCondition: "GOOD",
         categoryId: "",
       });
+      setImageFile(null);
+      setImagePreview("");
     } catch (err) {
+      setUploading(false);
       setError(err.response?.data?.message || "Không thể đăng sách. Vui lòng kiểm tra lại thông tin.");
     } finally {
       setSubmitting(false);
@@ -102,6 +127,10 @@ const Sell = () => {
             <input className="form-control" type="number" min="1" value={form.pages} onChange={(e) => setForm({ ...form, pages: e.target.value })} required />
           </div>
           <div className="col-md-4">
+            <label className="form-label">Số lượng</label>
+            <input className="form-control" type="number" min="1" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} required />
+          </div>
+          <div className="col-md-4">
             <label className="form-label">Tình trạng</label>
             <select className="form-select" value={form.bookCondition} onChange={(e) => setForm({ ...form, bookCondition: e.target.value })}>
               <option value="NEW">Mới</option>
@@ -121,15 +150,16 @@ const Sell = () => {
             </select>
           </div>
           <div className="col-md-6">
-            <label className="form-label">Ảnh bìa URL</label>
-            <input className="form-control" type="url" value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://..." />
+            <label className="form-label">Ảnh bìa sách</label>
+            <input className="form-control" type="file" accept="image/*" onChange={handleImageChange} />
+            {uploading && <small className="text-muted">Đang tải ảnh lên...</small>}
           </div>
         </div>
 
-        {form.imageUrl && <img className="sell-preview" src={form.imageUrl} alt="Xem trước bìa sách" />}
+        {imagePreview && <img className="sell-preview" src={imagePreview} alt="Xem trước bìa sách" />}
 
-        <button className="btn btn-primary btn-lg mt-4" disabled={submitting} type="submit">
-          {submitting ? "Đang gửi duyệt..." : "Gửi admin duyệt"}
+        <button className="btn btn-primary btn-lg mt-4" disabled={submitting || uploading} type="submit">
+          {uploading ? "Đang tải ảnh lên..." : submitting ? "Đang gửi duyệt..." : "Gửi admin duyệt"}
         </button>
       </form>
     </div>
