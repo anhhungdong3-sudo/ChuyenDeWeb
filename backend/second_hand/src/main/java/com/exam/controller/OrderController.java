@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.annotation.Secured;
 
 import java.util.List;
 import java.util.Map;
@@ -65,5 +66,22 @@ public class OrderController {
     @GetMapping("/my-orders")
     public ResponseEntity<List<Order>> getMyOrders(@RequestHeader("Authorization") String authHeader) {
         return ResponseEntity.ok(orderService.getOrdersByUserId(extractUserId(authHeader)));
+    }
+
+     // === ADMIN ENDPOINTS ===
+
+    // Lấy danh sách tất cả đơn hàng (Chỉ ADMIN)
+    @GetMapping("/admin")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<List<Order>> getAllOrders() {
+        return ResponseEntity.ok(orderService.getAllOrders());
+    }
+
+    // Cập nhật trạng thái đơn hàng (Chỉ ADMIN)
+    @PutMapping("/admin/{id}/status")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<?> updateOrderStatus(@PathVariable Long id, @RequestBody Map<String, String> body) {
+        Order updatedOrder = orderService.updateOrderStatus(id, body.get("orderStatus"));
+        return ResponseEntity.ok(Map.of("message", "Cập nhật trạng thái đơn hàng thành công!", "order", updatedOrder));
     }
 }

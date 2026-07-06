@@ -79,9 +79,9 @@ public class OrderServiceImpl {
 
             // Đánh dấu sách đã bán
             Book book = bookRepository.findByIdForUpdate(cartItem.getBook().getId())
-                    .orElseThrow(() -> new RuntimeException("SÃ¡ch trong giá» hÃ ng khÃ´ng cÃ²n tá»“n táº¡i!"));
+                    .orElseThrow(() -> new RuntimeException("Sách không tồn tại!"));
             if (!"APPROVED".equals(book.getStatus())) {
-                throw new RuntimeException("SÃ¡ch \"" + book.getTitle() + "\" khÃ´ng cÃ²n kháº£ dá»¥ng Ä‘á»ƒ Ä‘áº·t hÃ ng!");
+                throw new RuntimeException("Sách \"" + book.getTitle() + "\" không còn sẵn sàng để đặt hàng!");
             }
             book.setStatus("SOLD");
             bookRepository.save(book);
@@ -201,6 +201,35 @@ public class OrderServiceImpl {
     // Lấy lịch sử đơn hàng của User
     public List<Order> getOrdersByUserId(Long userId) {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    // Danh sách trạng thái đơn hàng hợp lệ
+    private static final List<String> VALID_ORDER_STATUSES =
+            List.of("PENDING", "PROCESSING", "SHIPPING", "COMPLETED", "CANCELLED");
+
+    // Lấy tất cả đơn hàng (Chỉ ADMIN)
+    public List<Order> getAllOrders() {
+        return orderRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    // Cập nhật trạng thái đơn hàng (Chỉ ADMIN)
+    @Transactional
+    public Order updateOrderStatus(Long orderId, String newStatus) {
+        if (newStatus == null || !VALID_ORDER_STATUSES.contains(newStatus.toUpperCase())) {
+            throw new RuntimeException("Trạng thái đơn hàng không hợp lệ!");
+        }
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
+
+        order.setOrderStatus(newStatus.toUpperCase());
+
+        // Nếu đơn hàng hoàn tất và đang thanh toán COD thì đánh dấu đã thanh toán
+        if ("COMPLETED".equals(order.getOrderStatus()) && "cod".equalsIgnoreCase(order.getPaymentMethod())) {
+            order.setPaymentStatus("PAID");
+        }
+
+        return orderRepository.save(order);
     }
 
     // Thuật toán HMAC-SHA512 để ký dữ liệu VNPAY

@@ -523,6 +523,41 @@ img {
   font-weight: 850;
 }
 
+.order-status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.order-status-pending {
+  background: #fff3cd;
+  color: #997404;
+}
+
+.order-status-processing {
+  background: #cfe2ff;
+  color: #084298;
+}
+
+.order-status-shipping {
+  background: #e0cffc;
+  color: #59359a;
+}
+
+.order-status-completed {
+  background: #d1e7dd;
+  color: #0f5132;
+}
+
+.order-status-cancelled {
+  background: #f8d7da;
+  color: #842029;
+}
+
 .quantity-control {
   display: grid;
   grid-template-columns: 34px 38px 34px;
