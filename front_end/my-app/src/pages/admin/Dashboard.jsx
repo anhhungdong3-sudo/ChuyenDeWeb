@@ -1,282 +1,176 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import "../../styles/admin/Dashboard.css";
 
 import StatCard from "../../components/admin/StatCard";
 import RevenueChart from "../../components/admin/RevenueChart";
 import CategoryChart from "../../components/admin/CategoryChart";
+import { formatCurrency, orderService } from "../../services/api";
+
+const CHART_COLORS = ["#2563eb", "#16a34a", "#f59e0b", "#ef4444", "#7c3aed", "#0f766e"];
+
+const EMPTY_STATS = {
+  todayRevenue: 0,
+  monthRevenue: 0,
+  yearRevenue: 0,
+  deliveredOrders: 0,
+  booksSold: 0,
+  dailyRevenue: [],
+  categoryRevenue: [],
+};
 
 function Dashboard() {
-
-  const [timeRange, setTimeRange] = useState("last7days");
-
+  const [days, setDays] = useState(7);
+  const [stats, setStats] = useState(EMPTY_STATS);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [hoveredDataPoint, setHoveredDataPoint] = useState(null);
+  const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
 
-  const [tooltipPos, setTooltipPos] = useState({
-    x: 0,
-    y: 0,
-  });
+  useEffect(() => {
+    let isMounted = true;
+    setLoading(true);
+    setError("");
 
-  const settings = {
-    commissionRate: 10,
-  };
+    orderService
+      .getRevenueStats(days)
+      .then((data) => {
+        if (isMounted) {
+          setStats(data || EMPTY_STATS);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setError("Khong the tai du lieu thong ke doanh thu.");
+          setStats(EMPTY_STATS);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setLoading(false);
+        }
+      });
 
-  const MOCK_STATS_DATA = {
-    last7days: {
-      kpi: {
-        revenue: 2845000,
-        revenueTrend: 12.5,
-
-        orders: 12,
-        ordersTrend: 8.3,
-
-        avgOrderValue: 237083,
-        avgOrderValueTrend: 3.8,
-
-        commissionTrend: 12.5,
-      },
-
-      chartData: [
-        { label: "T2", value: 320000, orders: 1 },
-        { label: "T3", value: 450000, orders: 2 },
-        { label: "T4", value: 180000, orders: 1 },
-        { label: "T5", value: 620000, orders: 3 },
-        { label: "T6", value: 290000, orders: 1 },
-        { label: "T7", value: 580000, orders: 2 },
-        { label: "CN", value: 405000, orders: 2 },
-      ],
-
-      categories: [
-        {
-          name: "Sách Văn Học",
-          value: 1120000,
-          percentage: 39,
-          color: "#3b82f6",
-        },
-        {
-          name: "Kinh Tế",
-          value: 860000,
-          percentage: 30,
-          color: "#10b981",
-        },
-        {
-          name: "Công Nghệ",
-          value: 520000,
-          percentage: 18,
-          color: "#f59e0b",
-        },
-        {
-          name: "Thiếu Nhi",
-          value: 345000,
-          percentage: 13,
-          color: "#ef4444",
-        },
-      ],
-    },
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [days]);
 
   const activeStatsData = useMemo(() => {
-    return MOCK_STATS_DATA[timeRange];
-  }, [timeRange]);
+    const chartData = (stats.dailyRevenue || []).map((item) => ({
+      label: item.label,
+      value: Number(item.revenue || 0),
+      orders: Number(item.orders || 0),
+    }));
+
+    const categories = (stats.categoryRevenue || []).map((item, index) => ({
+      name: item.name,
+      value: Number(item.revenue || 0),
+      booksSold: Number(item.booksSold || 0),
+      percentage: Number(item.percentage || 0),
+      color: CHART_COLORS[index % CHART_COLORS.length],
+    }));
+
+    return { chartData, categories };
+  }, [stats]);
 
   const SVG_CONFIG = {
     width: 600,
     height: 260,
-
     paddingLeft: 50,
     paddingRight: 20,
-
     paddingTop: 20,
     paddingBottom: 40,
   };
 
   const chartPoints = useMemo(() => {
-
     const data = activeStatsData.chartData;
-
-    const maxValue =
-      Math.max(...data.map((d) => d.value)) || 1;
+    const maxValue = Math.max(...data.map((d) => d.value), 1);
+    const xStep =
+      data.length > 1
+        ? (SVG_CONFIG.width - SVG_CONFIG.paddingLeft - SVG_CONFIG.paddingRight) / (data.length - 1)
+        : 0;
 
     return data.map((item, index) => {
-
-      const x =
-        SVG_CONFIG.paddingLeft +
-        index *
-          ((SVG_CONFIG.width -
-            SVG_CONFIG.paddingLeft -
-            SVG_CONFIG.paddingRight) /
-            (data.length - 1));
-
+      const x = data.length > 1 ? SVG_CONFIG.paddingLeft + index * xStep : SVG_CONFIG.width / 2;
       const y =
         SVG_CONFIG.height -
         SVG_CONFIG.paddingBottom -
-        (item.value / maxValue) *
-          (SVG_CONFIG.height -
-            SVG_CONFIG.paddingTop -
-            SVG_CONFIG.paddingBottom);
+        (item.value / maxValue) * (SVG_CONFIG.height - SVG_CONFIG.paddingTop - SVG_CONFIG.paddingBottom);
 
-      return {
-        ...item,
-        x,
-        y,
-      };
+      return { ...item, x, y };
     });
-
   }, [activeStatsData]);
 
   const linePathD = useMemo(() => {
-
     if (!chartPoints.length) return "";
-
-    return chartPoints
-      .map((p, i) =>
-        `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`
-      )
-      .join(" ");
-
+    return chartPoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
   }, [chartPoints]);
 
   const areaPathD = useMemo(() => {
-
     if (!chartPoints.length) return "";
-
     const first = chartPoints[0];
     const last = chartPoints[chartPoints.length - 1];
-
-    return `
-      M ${first.x} ${SVG_CONFIG.height - SVG_CONFIG.paddingBottom}
-      L ${first.x} ${first.y}
-      ${chartPoints
-        .map((p) => `L ${p.x} ${p.y}`)
-        .join(" ")}
-      L ${last.x} ${SVG_CONFIG.height - SVG_CONFIG.paddingBottom}
-      Z
-    `;
-
+    const bottom = SVG_CONFIG.height - SVG_CONFIG.paddingBottom;
+    return `M ${first.x} ${bottom} L ${first.x} ${first.y} ${chartPoints
+      .map((p) => `L ${p.x} ${p.y}`)
+      .join(" ")} L ${last.x} ${bottom} Z`;
   }, [chartPoints]);
 
   const handleMouseMoveDot = (e, point) => {
-
-    const rect =
-      e.currentTarget
-        .ownerSVGElement
-        .getBoundingClientRect();
-
+    const rect = e.currentTarget.ownerSVGElement.getBoundingClientRect();
     setTooltipPos({
       x: e.clientX - rect.left,
       y: e.clientY - rect.top - 70,
     });
-
     setHoveredDataPoint(point);
-  };
-
-  const exportToCSV = () => {
-    alert("Xuất Excel thành công");
   };
 
   return (
     <>
-      {/* HEADER */}
-
       <div className="admin-header-panel">
-
         <div className="admin-header-title">
-          <h1>Báo Cáo Tài Chính & Doanh Thu</h1>
-
-          <p>
-            Phân tích hiệu năng bán hàng,
-            phí commission và dòng tiền
-            trên sàn
-          </p>
+          <h1>Bao cao doanh thu</h1>
+          <p>Doanh thu duoc tinh theo ngay don hang duoc chuyen sang trang thai da giao.</p>
         </div>
 
         <div className="admin-header-controls">
-
-          <select
-            className="time-range-select"
-            value={timeRange}
-            onChange={(e) =>
-              setTimeRange(e.target.value)
-            }
-          >
-            <option value="last7days">
-              7 ngày qua
-            </option>
+          <select className="time-range-select" value={days} onChange={(e) => setDays(Number(e.target.value))}>
+            <option value={7}>7 ngay qua</option>
+            <option value={15}>15 ngay qua</option>
+            <option value={30}>30 ngay qua</option>
           </select>
-
-          <button
-            className="btn-export-report"
-            onClick={exportToCSV}
-          >
-            Xuất Excel
-          </button>
-
         </div>
-
       </div>
 
-      {/* KPI */}
+      {error && <div className="dashboard-alert">{error}</div>}
 
       <div className="kpi-cards-grid">
-
-        <StatCard
-          title="Tổng doanh thu"
-          value={`${activeStatsData.kpi.revenue.toLocaleString()}đ`}
-          trend={activeStatsData.kpi.revenueTrend}
-          icon="fas fa-wallet"
-          variant="primary"
-        />
-
-        <StatCard
-          title="Đơn hàng mới"
-          value={activeStatsData.kpi.orders}
-          trend={activeStatsData.kpi.ordersTrend}
-          icon="fas fa-shopping-cart"
-          variant="success"
-        />
-
-        <StatCard
-          title="Giá trị TB đơn"
-          value={`${activeStatsData.kpi.avgOrderValue.toLocaleString()}đ`}
-          trend={activeStatsData.kpi.avgOrderValueTrend}
-          icon="fas fa-chart-line"
-          variant="warning"
-        />
-
-        <StatCard
-          title={`Chiết khấu (${settings.commissionRate}%)`}
-          value={`${(
-            activeStatsData.kpi.revenue *
-            settings.commissionRate /
-            100
-          ).toLocaleString()}đ`}
-          trend={activeStatsData.kpi.commissionTrend}
-          icon="fas fa-percentage"
-          variant="purple"
-        />
-
+        <StatCard title="Doanh thu hom nay" value={formatCurrency(stats.todayRevenue)} icon="fas fa-wallet" variant="primary" />
+        <StatCard title="Doanh thu thang nay" value={formatCurrency(stats.monthRevenue)} icon="fas fa-chart-line" variant="success" />
+        <StatCard title="Doanh thu nam nay" value={formatCurrency(stats.yearRevenue)} icon="fas fa-calendar" variant="warning" />
+        <StatCard title="So don da giao" value={stats.deliveredOrders || 0} icon="fas fa-box" variant="purple" />
+        <StatCard title="So sach da ban" value={stats.booksSold || 0} icon="fas fa-book" variant="success" />
       </div>
 
-      {/* CHART */}
+      {loading ? (
+        <div className="dashboard-loading">Dang tai thong ke...</div>
+      ) : (
+        <div className="charts-grid">
+          <RevenueChart
+            SVG_CONFIG={SVG_CONFIG}
+            chartPoints={chartPoints}
+            linePathD={linePathD}
+            areaPathD={areaPathD}
+            activeStatsData={activeStatsData}
+            hoveredDataPoint={hoveredDataPoint}
+            tooltipPos={tooltipPos}
+            handleMouseMoveDot={handleMouseMoveDot}
+            setHoveredDataPoint={setHoveredDataPoint}
+          />
 
-      <div className="charts-grid">
-
-        <RevenueChart
-          SVG_CONFIG={SVG_CONFIG}
-          chartPoints={chartPoints}
-          linePathD={linePathD}
-          areaPathD={areaPathD}
-          activeStatsData={activeStatsData}
-          hoveredDataPoint={hoveredDataPoint}
-          tooltipPos={tooltipPos}
-          handleMouseMoveDot={handleMouseMoveDot}
-          setHoveredDataPoint={setHoveredDataPoint}
-        />
-
-        <CategoryChart
-          categories={activeStatsData.categories}
-        />
-
-      </div>
+          <CategoryChart categories={activeStatsData.categories} />
+        </div>
+      )}
     </>
   );
 }

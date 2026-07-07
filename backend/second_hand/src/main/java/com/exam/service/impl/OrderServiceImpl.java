@@ -1,6 +1,7 @@
 package com.exam.service.impl;
 
 import com.exam.dto.OrderRequest;
+import com.exam.dto.RevenueStatsResponse;
 import com.exam.entity.*;
 import com.exam.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +14,11 @@ import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl {
@@ -214,6 +218,97 @@ public class OrderServiceImpl {
         return orderRepository.findAllByOrderByCreatedAtDesc();
     }
 
+    public RevenueStatsResponse getRevenueStats(int days) {
+        int rangeDays = List.of(7, 15, 30).contains(days) ? days : 7;
+        LocalDate today = LocalDate.now();
+        LocalDate startDate = today.minusDays(rangeDays - 1L);
+        LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+        LocalDate firstDayOfYear = today.withDayOfYear(1);
+
+        List<Order> completedOrders = orderRepository.findCompletedOrdersForRevenueStats("COMPLETED");
+
+        Map<LocalDate, RevenueStatsResponse.DailyRevenue> dailyRevenueMap = new LinkedHashMap<>();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ISO_LOCAL_DATE;
+        DateTimeFormatter labelFormatter = DateTimeFormatter.ofPattern("dd/MM");
+
+        for (int i = 0; i < rangeDays; i++) {
+            LocalDate date = startDate.plusDays(i);
+            dailyRevenueMap.put(date, new RevenueStatsResponse.DailyRevenue(
+                    date.format(dateFormatter),
+                    date.format(labelFormatter),
+                    0D,
+                    0L
+            ));
+        }
+
+        Map<String, CategoryAccumulator> categoryRevenue = new LinkedHashMap<>();
+        double todayRevenue = 0D;
+        double monthRevenue = 0D;
+        double yearRevenue = 0D;
+        long booksSold = 0L;
+
+        for (Order order : completedOrders) {
+            LocalDate deliveredDate = order.getDeliveredAt().toLocalDate();
+            double orderRevenue = order.getTotalAmount() == null ? 0D : order.getTotalAmount();
+
+            if (deliveredDate.equals(today)) {
+                todayRevenue += orderRevenue;
+            }
+            if (!deliveredDate.isBefore(firstDayOfMonth) && !deliveredDate.isAfter(today)) {
+                monthRevenue += orderRevenue;
+            }
+            if (!deliveredDate.isBefore(firstDayOfYear) && !deliveredDate.isAfter(today)) {
+                yearRevenue += orderRevenue;
+            }
+
+            RevenueStatsResponse.DailyRevenue dailyRevenue = dailyRevenueMap.get(deliveredDate);
+            if (dailyRevenue != null) {
+                dailyRevenue.setRevenue(dailyRevenue.getRevenue() + orderRevenue);
+                dailyRevenue.setOrders(dailyRevenue.getOrders() + 1);
+            }
+
+            for (OrderItem item : order.getItems()) {
+                int quantity = item.getQuantity() == null ? 0 : item.getQuantity();
+                booksSold += quantity;
+
+                if (!deliveredDate.isBefore(startDate) && !deliveredDate.isAfter(today)) {
+                    double itemRevenue = (item.getPrice() == null ? 0D : item.getPrice()) * quantity;
+                    Book book = item.getBook();
+                    String categoryName = book != null && book.getCategory() != null
+                            ? book.getCategory().getName()
+                            : "Chua phan loai";
+                    CategoryAccumulator accumulator = categoryRevenue.computeIfAbsent(categoryName, key -> new CategoryAccumulator());
+                    accumulator.revenue += itemRevenue;
+                    accumulator.booksSold += quantity;
+                }
+            }
+        }
+
+        double totalCategoryRevenue = categoryRevenue.values().stream()
+                .mapToDouble(accumulator -> accumulator.revenue)
+                .sum();
+
+        List<RevenueStatsResponse.CategoryRevenue> categoryRevenueList = categoryRevenue.entrySet().stream()
+                .map(entry -> new RevenueStatsResponse.CategoryRevenue(
+                        entry.getKey(),
+                        entry.getValue().revenue,
+                        entry.getValue().booksSold,
+                        totalCategoryRevenue == 0D ? 0D : entry.getValue().revenue * 100D / totalCategoryRevenue
+                ))
+                .sorted(Comparator.comparing(RevenueStatsResponse.CategoryRevenue::getRevenue).reversed())
+                .collect(Collectors.toList());
+
+        return new RevenueStatsResponse(
+                todayRevenue,
+                monthRevenue,
+                yearRevenue,
+                (long) completedOrders.size(),
+                booksSold,
+                new ArrayList<>(dailyRevenueMap.values()),
+                categoryRevenueList
+        );
+    }
+
     // Cập nhật trạng thái đơn hàng (Chỉ ADMIN)
     @Transactional
     public Order updateOrderStatus(Long orderId, String newStatus) {
@@ -234,7 +329,9 @@ public class OrderServiceImpl {
 
         // Khi chuyển sang COMPLETED lần đầu
         if ("COMPLETED".equals(newStatus)) {
-            order.setDeliveredAt(LocalDateTime.now());
+            if (order.getDeliveredAt() == null) {
+                order.setDeliveredAt(LocalDateTime.now());
+            }
             // Nếu COD thì tự động thanh toán
             if ("cod".equalsIgnoreCase(order.getPaymentMethod())) {
                 order.setPaymentStatus("PAID");
@@ -257,5 +354,10 @@ public class OrderServiceImpl {
         } catch (Exception ex) {
             throw new RuntimeException("Lỗi tính toán HMAC: " + ex.getMessage());
         }
+    }
+
+    private static class CategoryAccumulator {
+        private double revenue = 0D;
+        private long booksSold = 0L;
     }
 }
