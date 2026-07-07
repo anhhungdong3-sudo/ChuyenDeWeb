@@ -58,6 +58,7 @@ function Orders() {
     );
     try {
       await orderService.updateOrderStatus(orderId, newStatus);
+      loadOrders();
     } catch (err) {
       setOrders(previousOrders);
       setSelectedOrder((prev) =>
@@ -131,6 +132,7 @@ function Orders() {
                 <th>Khách hàng</th>
                 <th>Tổng tiền</th>
                 <th>Ngày đặt</th>
+                <th>Ngày giao</th>
                 <th>Trạng thái</th>
                 <th>Cập nhật trạng thái</th>
                 <th>Chi tiết</th>
@@ -149,18 +151,25 @@ function Orders() {
                       : "-"}
                   </td>
                   <td>
+                    {order.deliveredAt
+                      ? new Date(order.deliveredAt).toLocaleString("vi-VN")
+                      : "-"}
+                  </td>
+                  <td>
                     <span
-                      className={`status-badge ${
-                        STATUS_BADGE_CLASS[order.orderStatus] || "pending"
-                      }`}
+                      className={`status-badge ${STATUS_BADGE_CLASS[order.orderStatus] || "pending"
+                        }`}
                     >
-                        {STATUS_LABEL[order.orderStatus] || order.orderStatus}
+                      {STATUS_LABEL[order.orderStatus] || order.orderStatus}
                     </span>
                   </td>
                   <td>
                     <select
                       value={order.orderStatus || "PENDING"}
-                      disabled={updatingId === order.id}
+                      disabled={
+                        updatingId === order.id ||
+                        order.orderStatus === "COMPLETED"
+                      }
                       onChange={(e) =>
                         handleStatusChange(order.id, e.target.value)
                       }
@@ -186,7 +195,7 @@ function Orders() {
 
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: 16 }}>
+                  <td colSpan={8} style={{ textAlign: "center", padding: 16 }}>
                     Không tìm thấy đơn hàng nào.
                   </td>
                 </tr>
@@ -229,9 +238,8 @@ function Orders() {
             <div className="order-detail-header">
               <h2>Đơn hàng #{selectedOrder.id}</h2>
               <span
-                className={`status-badge ${
-                  STATUS_BADGE_CLASS[selectedOrder.orderStatus] || "pending"
-                }`}
+                className={`status-badge ${STATUS_BADGE_CLASS[selectedOrder.orderStatus] || "pending"
+                  }`}
               >
                 {STATUS_LABEL[selectedOrder.orderStatus] ||
                   selectedOrder.orderStatus}
@@ -275,13 +283,19 @@ function Orders() {
                 {selectedOrder.paymentStatus === "PAID"
                   ? "Đã thanh toán"
                   : selectedOrder.paymentStatus === "FAILED"
-                  ? "Thất bại"
-                  : "Chưa thanh toán"}
+                    ? "Thất bại"
+                    : "Chưa thanh toán"}
               </p>
               <p>
                 <strong>Ngày đặt:</strong>{" "}
                 {selectedOrder.createdAt
                   ? new Date(selectedOrder.createdAt).toLocaleString("vi-VN")
+                  : "-"}
+              </p>
+              <p>
+                <strong>Ngày giao:</strong>{" "}
+                {selectedOrder.deliveredAt
+                  ? new Date(selectedOrder.deliveredAt).toLocaleString("vi-VN")
                   : "-"}
               </p>
             </div>
@@ -318,7 +332,10 @@ function Orders() {
               <h4>Cập nhật trạng thái</h4>
               <select
                 value={selectedOrder.orderStatus || "PENDING"}
-                disabled={updatingId === selectedOrder.id}
+                disabled={
+                  updatingId === selectedOrder.id ||
+                  selectedOrder.orderStatus === "COMPLETED"
+                }
                 onChange={(e) =>
                   handleStatusChange(selectedOrder.id, e.target.value)
                 }

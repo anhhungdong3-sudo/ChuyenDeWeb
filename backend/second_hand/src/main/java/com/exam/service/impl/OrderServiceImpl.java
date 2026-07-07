@@ -13,6 +13,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -168,7 +169,8 @@ public class OrderServiceImpl {
             Map.Entry<String, String> entry = itr.next();
             signData.append(entry.getKey()).append("=")
                     .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
-            if (itr.hasNext()) signData.append("&");
+            if (itr.hasNext())
+                signData.append("&");
         }
 
         String checkHash = hmacSHA512(vnpHashSecret, signData.toString());
@@ -204,8 +206,8 @@ public class OrderServiceImpl {
     }
 
     // Danh sách trạng thái đơn hàng hợp lệ
-    private static final List<String> VALID_ORDER_STATUSES =
-            List.of("PENDING", "PROCESSING", "SHIPPING", "COMPLETED", "CANCELLED");
+    private static final List<String> VALID_ORDER_STATUSES = List.of("PENDING", "PROCESSING", "SHIPPING", "COMPLETED",
+            "CANCELLED");
 
     // Lấy tất cả đơn hàng (Chỉ ADMIN)
     public List<Order> getAllOrders() {
@@ -222,13 +224,22 @@ public class OrderServiceImpl {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
-        order.setOrderStatus(newStatus.toUpperCase());
-
-        // Nếu đơn hàng hoàn tất và đang thanh toán COD thì đánh dấu đã thanh toán
-        if ("COMPLETED".equals(order.getOrderStatus()) && "cod".equalsIgnoreCase(order.getPaymentMethod())) {
-            order.setPaymentStatus("PAID");
+        // Không cho phép cập nhật nếu đơn hàng đã hoàn thành
+        if ("COMPLETED".equals(order.getOrderStatus())) {
+            throw new RuntimeException("Đơn hàng đã giao, không thể thay đổi trạng thái!");
         }
 
+        newStatus = newStatus.toUpperCase();
+        order.setOrderStatus(newStatus);
+
+        // Khi chuyển sang COMPLETED lần đầu
+        if ("COMPLETED".equals(newStatus)) {
+            order.setDeliveredAt(LocalDateTime.now());
+            // Nếu COD thì tự động thanh toán
+            if ("cod".equalsIgnoreCase(order.getPaymentMethod())) {
+                order.setPaymentStatus("PAID");
+            }
+        }
         return orderRepository.save(order);
     }
 
@@ -240,7 +251,8 @@ public class OrderServiceImpl {
             hmac512.init(secretKey);
             byte[] result = hmac512.doFinal(data.getBytes(StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
-            for (byte b : result) sb.append(String.format("%02x", b));
+            for (byte b : result)
+                sb.append(String.format("%02x", b));
             return sb.toString();
         } catch (Exception ex) {
             throw new RuntimeException("Lỗi tính toán HMAC: " + ex.getMessage());
