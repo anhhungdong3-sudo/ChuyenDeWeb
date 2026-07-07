@@ -1,5 +1,6 @@
 package com.exam.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,6 +22,7 @@ public class User {
     @Column(unique = true, nullable = false)
     private String username;
 
+    @JsonIgnore
     @Column(nullable = false)
     private String password;
 
@@ -37,4 +39,7 @@ public class User {
 
     @Column(nullable = false)
     private String role = "USER"; // Mặc định là USER, có thể cấu hình ADMIN
+
+    @Column(columnDefinition = "TINYINT(1) DEFAULT 1")
+    private Boolean enabled = true; // false = tài khoản bị khóa
 }
