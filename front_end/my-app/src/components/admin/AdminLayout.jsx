@@ -1,4 +1,5 @@
 import { Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Sidebar from "./Sidebar";
 import "../../styles/admin/AdminLayout.css";
 
@@ -7,13 +8,15 @@ function AdminLayout() {
 
   // Lấy user từ localStorage
   const adminUser = {
-  fullName: "Administrator",
-  role: "Admin",
-};
+    fullName: "Administrator",
+    role: "Admin",
+  };
+
+  const { logout } = useAuth();
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    navigate("/");
+    logout();
+    navigate("/login", { replace: true });
   };
 
   return (
@@ -23,9 +26,9 @@ function AdminLayout() {
         handleLogout={handleLogout}
       />
 
-        <div className="admin-main">
-          <Outlet />
-        </div>
+      <div className="admin-main">
+        <Outlet />
+      </div>
     </div>
   );
 }
