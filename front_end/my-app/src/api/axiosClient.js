@@ -29,9 +29,16 @@ axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+
       window.dispatchEvent(new Event("oldbookstore:auth-expired"));
+
+      window.location.href = "/login";
     }
+
     return Promise.reject(error);
   },
 );

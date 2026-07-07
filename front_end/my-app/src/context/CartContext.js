@@ -21,6 +21,9 @@ export const CartProvider = ({ children }) => {
       const data = await cartService.getCart();
       setCart(data);
       return data;
+    } catch (err) {
+      setCart(null);
+      return null;
     } finally {
       setCartLoading(false);
     }

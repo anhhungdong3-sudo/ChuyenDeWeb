@@ -189,3 +189,32 @@ export const chatService = {
     return response.data;
   },
 };
+
+export const mapUser = (user) => ({
+  ...user,
+  roleLabel: user.role === "ADMIN" ? "Quản trị viên" : "Người dùng",
+  statusLabel: user.enabled === false ? "Đã khóa" : "Hoạt động",
+});
+
+export const userService = {
+  getAllUsers: async () => {
+    const response = await axiosClient.get("/users/admin");
+    return response.data.map(mapUser);
+  },
+
+  updateUserRole: async (id, role) => {
+    const response = await axiosClient.put(`/users/admin/${id}/role`, { role });
+    return response.data;
+  },
+
+  updateUserStatus: async (id, enabled) => {
+    const response = await axiosClient.put(`/users/admin/${id}/status`, { enabled });
+    return response.data;
+  },
+
+  deleteUser: async (id) => {
+    const response = await axiosClient.delete(`/users/admin/${id}`);
+    return response.data;
+  },
+
+};

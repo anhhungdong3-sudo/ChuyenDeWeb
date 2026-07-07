@@ -90,7 +90,8 @@ public class AuthServiceImpl implements AuthService {
                 .findByEmailAndOtpCode(email, otpCode)
                 .orElse(null);
 
-        if (otpRecord == null) return false;
+        if (otpRecord == null)
+            return false;
 
         // Kiểm tra OTP còn hạn
         if (otpRecord.getExpiryTime().isBefore(LocalDateTime.now())) {
@@ -125,15 +126,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public String loginUser(String username, String password) {
+
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Tên đăng nhập không tồn tại!"));
+
+        // Kiểm tra tài khoản có bị khóa không
+        if (Boolean.FALSE.equals(user.getEnabled())) {
+            throw new RuntimeException("Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên.");
+        }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Mật khẩu không chính xác!");
         }
 
-        // Sinh và trả về JWT Token
-        return jwtTokenProvider.generateToken(user.getUsername(), user.getRole(), user.getId());
+        return jwtTokenProvider.generateToken(
+                user.getUsername(),
+                user.getRole(),
+                user.getId());
     }
 
     @Override
