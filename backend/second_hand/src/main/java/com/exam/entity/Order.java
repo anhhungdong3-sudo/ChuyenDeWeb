@@ -57,4 +57,7 @@ public class Order {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "delivered_at")
+    private LocalDateTime deliveredAt;
 }
