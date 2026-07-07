@@ -49,7 +49,7 @@
 
 .kpi-cards-grid {
   display: grid;
-  grid-template-columns: repeat(4,1fr);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 20px;
 
   margin-bottom: 30px;
@@ -162,6 +162,26 @@
   margin: 0;
 }
 
+.dashboard-alert,
+.dashboard-loading,
+.empty-chart-state {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 20px;
+  color: #64748b;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+}
+
+.dashboard-alert {
+  margin-bottom: 20px;
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.dashboard-loading {
+  text-align: center;
+}
+
 .chart-canvas-container {
   position: relative;
   height: 380px;
@@ -223,13 +243,57 @@
 .categories-list {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 14px;
+}
+
+.category-chart-layout {
+  display: grid;
+  gap: 22px;
+}
+
+.pie-chart-wrap {
+  position: relative;
+  width: min(230px, 100%);
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+
+.pie-chart {
+  width: 100%;
+  height: 100%;
+}
+
+.pie-center {
+  fill: white;
+}
+
+.pie-total {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.pie-total span {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.pie-total strong {
+  color: #0f172a;
+  font-size: 15px;
 }
 
 .category-info {
   display: flex;
   justify-content: space-between;
   margin-bottom: 8px;
+  gap: 12px;
 }
 
 .category-name-box {
@@ -239,9 +303,26 @@
 }
 
 .category-dot {
+  flex: 0 0 auto;
   width: 10px;
   height: 10px;
   border-radius: 50%;
+}
+
+.category-name {
+  color: #334155;
+}
+
+.category-value {
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.category-meta {
+  display: flex;
+  justify-content: space-between;
+  color: #94a3b8;
+  font-size: 13px;
 }
 
 .progress-bar-bg {
@@ -257,4 +338,28 @@
 .progress-bar-fill {
   height: 100%;
   border-radius: 20px;
+}
+
+@media (max-width: 1200px) {
+  .kpi-cards-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-header-panel,
+  .charts-grid {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .kpi-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .kpi-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }

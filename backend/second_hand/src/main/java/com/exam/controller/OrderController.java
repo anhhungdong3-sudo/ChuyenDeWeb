@@ -84,4 +84,11 @@ public class OrderController {
         Order updatedOrder = orderService.updateOrderStatus(id, body.get("orderStatus"));
         return ResponseEntity.ok(Map.of("message", "Cập nhật trạng thái đơn hàng thành công!", "order", updatedOrder));
     }
+
+    
+    @GetMapping("/admin/revenue-stats")
+    @Secured("ROLE_ADMIN")
+    public ResponseEntity<?> getRevenueStats(@RequestParam(defaultValue = "7") int days) {
+        return ResponseEntity.ok(orderService.getRevenueStats(days));
+    }
 }

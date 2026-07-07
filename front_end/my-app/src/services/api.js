@@ -176,6 +176,11 @@ export const orderService = {
     const response = await axiosClient.put(`/orders/admin/${id}/status`, { orderStatus });
     return response.data;
   },
+
+  getRevenueStats: async (days = 7) => {
+    const response = await axiosClient.get("/orders/admin/revenue-stats", { params: { days } });
+    return response.data;
+  },
 };
 
 export const chatService = {

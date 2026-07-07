@@ -24,17 +24,19 @@ function StatCard({
         {value}
       </div>
 
-      <div className="kpi-footer">
-        <span className="trend-badge up">
-          <i className="fas fa-arrow-up"></i>
-          {" "}
-          {trend}%
-        </span>
+      {typeof trend === "number" && (
+        <div className="kpi-footer">
+          <span className="trend-badge up">
+            <i className="fas fa-arrow-up"></i>
+            {" "}
+            {trend}%
+          </span>
 
-        <span className="trend-text">
-          {footerText}
-        </span>
-      </div>
+          <span className="trend-text">
+            {footerText}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
