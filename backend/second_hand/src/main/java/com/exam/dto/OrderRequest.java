@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -28,4 +29,7 @@ public class OrderRequest {
 
     @NotBlank(message = "Phương thức thanh toán không được để trống")
     private String paymentMethod; // cod, vnpay
+
+    // === THÊM TRƯỜNG NÀY ===
+    private List<Long> cartItemIds;
 }

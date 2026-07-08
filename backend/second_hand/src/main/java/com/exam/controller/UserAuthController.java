@@ -19,6 +19,30 @@ public class UserAuthController {
     @Autowired
     private AuthService authService;
 
+    // ==================== BỔ SUNG KIỂM TRA BẤT ĐỒNG BỘ (ASYNC VALIDATION) ====================
+
+    /**
+     * Endpoint kiểm tra xem tên đăng nhập đã được ai sử dụng chưa
+     * URL gọi: GET http://localhost:8080/api/auth/check-username?username=...
+     */
+    @GetMapping("/check-username")
+    public ResponseEntity<?> checkUsername(@RequestParam String username) {
+        boolean exists = authService.checkUsernameExists(username.trim());
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
+    /**
+     * Endpoint kiểm tra xem email đã được đăng ký tài khoản nào chưa
+     * URL gọi: GET http://localhost:8080/api/auth/check-email?email=...
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        boolean exists = authService.checkEmailExists(email.trim());
+        return ResponseEntity.ok(Map.of("exists", exists));
+    }
+
+    // =========================================================================================
+
     // Bước 1: Gửi thông tin đăng ký - sinh OTP và gửi email
     @PostMapping("/register-pending")
     public ResponseEntity<?> registerPending(@Valid @RequestBody RegisterRequest request) {

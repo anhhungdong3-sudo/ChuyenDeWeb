@@ -40,4 +40,9 @@ public class GlobalExceptionHandler {
         error.put("message", "Đã xảy ra lỗi hệ thống. Vui lòng thử lại sau!");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+   @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleCartErrors(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+    }
+    
 }

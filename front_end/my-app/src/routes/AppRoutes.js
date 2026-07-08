@@ -19,12 +19,20 @@ import AdminLayout from "../components/admin/AdminLayout";
 import { useAuth } from "../context/AuthContext";
 import UserLayout from "../layouts/UserLayout";
 
+// Import thêm component duyệt tin của Admin mà bạn đã bổ sung
+
 const ProtectedRoute = ({ children }) => {
   const location = useLocation();
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location.pathname + location.search }} />;
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
   }
 
   return children;
@@ -49,38 +57,90 @@ const NotFound = () => (
     <div className="state-box">
       <h1>404</h1>
       <p>Trang bạn tìm không tồn tại trong Old Bookstore.</p>
-      <a className="btn btn-primary" href="/">Về trang chủ</a>
+      <a className="btn btn-primary" href="/">
+        Về trang chủ
+      </a>
     </div>
   </div>
 );
 
 const AppRoutes = () => (
   <Routes>
-
+    {/* Các Tuyến Đường Cho Khách Hàng (Nằm trong giao diện chung UserLayout) */}
     <Route element={<UserLayout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/books" element={<BooksPage />} />
-        <Route path="/books/:id" element={<BookDetail />} />
-        <Route path="/products" element={<Navigate to="/books" replace />} />
-        <Route path="/product/:id" element={<BookDetail />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/cart" element={<ProtectedRoute><CartPage /></ProtectedRoute> }/>
-        <Route path="/checkout" element={<ProtectedRoute> <CheckoutPage /> </ProtectedRoute> }/>
-        <Route path="/sell" element={ <ProtectedRoute> <Sell /> </ProtectedRoute> } />
-        <Route path="/profile" element={ <ProtectedRoute> <Profile /> </ProtectedRoute> }/>
-        <Route path="/vnpay-return" element={<ProtectedRoute><VnPayReturn /></ProtectedRoute>}/>
+      <Route path="/" element={<Home />} />
+      <Route path="/books" element={<BooksPage />} />
+      <Route path="/books/:id" element={<BookDetail />} />
+      <Route path="/products" element={<Navigate to="/books" replace />} />
+      <Route path="/product/:id" element={<BookDetail />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <CartPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/checkout"
+        element={
+          <ProtectedRoute>
+            {" "}
+            <CheckoutPage />{" "}
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/sell"
+        element={
+          <ProtectedRoute>
+            {" "}
+            <Sell />{" "}
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            {" "}
+            <Profile />{" "}
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/vnpay-return"
+        element={
+          <ProtectedRoute>
+            <VnPayReturn />
+          </ProtectedRoute>
+        }
+      />
     </Route>
 
-    <Route path="/admin" element={ <AdminRoute> <AdminLayout /></AdminRoute>}>
-        <Route index element={<Navigate to="dashboard" replace />}/>
-        <Route path="dashboard" element={<Dashboard />}/>
-        <Route path="products" element={<Products />}/>
-        <Route path="orders" element={<Orders />}/>
-        <Route path="users" element={<Users />}/>
-        <Route path="settings" element={<Settings />}/>
+    {/* Các Tuyến Đường Cho Admin (Nằm trong giao diện bảo mật AdminLayout) */}
+    <Route
+      path="/admin"
+      element={
+        <AdminRoute>
+          {" "}
+          <AdminLayout />
+        </AdminRoute>
+      }
+    >
+      <Route index element={<Navigate to="dashboard" replace />} />
+      <Route path="dashboard" element={<Dashboard />} />
+      <Route path="products" element={<Products />} />
+      <Route path="orders" element={<Orders />} />
+      <Route path="users" element={<Users />} />
+      <Route path="settings" element={<Settings />} />
     </Route>
-</Routes>
+
+    {/* Xử lý lỗi điều hướng khi không tìm thấy trang */}
+    <Route path="*" element={<NotFound />} />
+  </Routes>
 );
 
 export default AppRoutes;

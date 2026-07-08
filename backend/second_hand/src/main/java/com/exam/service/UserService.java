@@ -24,6 +24,32 @@ public class UserService {
 
     private static final List<String> VALID_ROLES = List.of("USER", "ADMIN");
 
+   // ==================== BỔ SUNG KIỂM TRA BẤT ĐỒNG BỘ (FOR ASYNC VALIDATION) ====================
+
+    /**
+     * Kiểm tra xem tên đăng nhập đã tồn tại trong hệ thống chưa
+     */
+    @Transactional(readOnly = true)
+    public boolean existsByUsername(String username) {
+        if (username == null || username.trim().isEmpty()) {
+            return false;
+        }
+        return userRepository.existsByUsername(username.trim());
+    }
+
+    /**
+     * Kiểm tra xem email đã được sử dụng chưa
+     */
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            return false;
+        }
+        return userRepository.existsByEmail(email.trim());
+    }
+
+    // =============================================================================================
+
     // Logic Đăng ký tài khoản
     public User registerUser(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {

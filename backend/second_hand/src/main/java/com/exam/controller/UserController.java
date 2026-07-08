@@ -24,7 +24,17 @@ public class UserController {
     private Long extractUserId(String authHeader) {
         return jwtTokenProvider.getUserIdFromJWT(authHeader.substring(7));
     }
+@GetMapping("/check-username")
+public ResponseEntity<?> checkUsername(@RequestParam String username) {
+    boolean exists = userService.existsByUsername(username); // Hoặc UserRepository
+    return ResponseEntity.ok(Map.of("exists", exists));
+}
 
+@GetMapping("/check-email")
+public ResponseEntity<?> checkEmail(@RequestParam String email) {
+    boolean exists = userService.existsByEmail(email);
+    return ResponseEntity.ok(Map.of("exists", exists));
+}
     // === ADMIN ENDPOINTS ===
 
     // Lấy danh sách tất cả người dùng (Chỉ ADMIN)
