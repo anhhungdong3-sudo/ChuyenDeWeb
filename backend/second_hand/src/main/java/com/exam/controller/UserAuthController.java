@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -84,5 +85,37 @@ public class UserAuthController {
         response.put("fullName", user.getFullName());
         response.put("role", user.getRole());
         return ResponseEntity.ok(response);
+    }
+    // Cổng 1: Nhận email và gọi Service phát hành OTP khôi phục mật khẩu
+    @PostMapping("/forgot-password/request")
+    public ResponseEntity<?> requestForgotPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Vui lòng nhập email của bạn!"));
+        }
+        try {
+            authService.requestForgotPassword(email);
+            return ResponseEntity.ok(Map.of("message", "Mã xác thực OTP đã được gửi về hòm thư điện tử của bạn!"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    // Cổng 2: Nhận mã và gọi Service tiến hành cập nhật mật mã mới
+    @PostMapping("/forgot-password/reset")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        String otpCode = body.get("otpCode");
+        String newPassword = body.get("newPassword");
+
+        if (email == null || otpCode == null || newPassword == null) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Các trường thông tin không được để trống!"));
+        }
+        try {
+            authService.resetPassword(email, otpCode, newPassword);
+            return ResponseEntity.ok(Map.of("message", "Đặt lại mật khẩu thành công! Bạn có thể đăng nhập bằng mật khẩu mới."));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
     }
 }

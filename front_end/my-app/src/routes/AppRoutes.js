@@ -18,6 +18,8 @@ import Settings from "../pages/admin/Settings";
 import AdminLayout from "../components/admin/AdminLayout";
 import { useAuth } from "../context/AuthContext";
 import UserLayout from "../layouts/UserLayout";
+import News from "../pages/News"; // Đường dẫn tới file News.jsx bạn vừa tạo
+import Contact from "../pages/Contact";
 
 // Import thêm component duyệt tin của Admin mà bạn đã bổ sung
 
@@ -69,12 +71,15 @@ const AppRoutes = () => (
     {/* Các Tuyến Đường Cho Khách Hàng (Nằm trong giao diện chung UserLayout) */}
     <Route element={<UserLayout />}>
       <Route path="/" element={<Home />} />
-      <Route path="/books" element={<BooksPage />} />
+      <Route path="/contact" element={<Contact />} />
+      <Route path="/news" element={<News />} />
       <Route path="/books/:id" element={<BookDetail />} />
       <Route path="/products" element={<Navigate to="/books" replace />} />
       <Route path="/product/:id" element={<BookDetail />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      {/* ======= KHAI BÁO ROUTE CHO 2 TRANG MỚI TẠI ĐÂY ======= */}
+      <Route path="/books" element={<BooksPage />} />
       <Route
         path="/cart"
         element={

@@ -10,4 +10,6 @@ public interface AuthService {
     boolean verifyAndSaveAccount(String email, String otpCode);
     String loginUser(String username, String password); // Trả về JWT token
     User getUserByUsername(String username);
+    void requestForgotPassword(String email);
+void resetPassword(String email, String otpCode, String newPassword);
 }
