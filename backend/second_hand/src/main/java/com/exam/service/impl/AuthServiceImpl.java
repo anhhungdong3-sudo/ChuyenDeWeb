@@ -150,4 +150,60 @@ public class AuthServiceImpl implements AuthService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy tài khoản!"));
     }
+    @Override
+@Transactional
+public void requestForgotPassword(String email) {
+    // 1. Kiểm tra xem Email có tồn tại trong hệ thống hay không
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Địa chỉ email này không tồn tại trên hệ thống!"));
+
+    // 2. Dọn sạch các yêu cầu OTP cũ của email này nếu có
+    otpVerificationRepository.deleteByEmail(email);
+
+    // 3. Tạo mã OTP ngẫu nhiên gồm 6 chữ số
+    String otp = String.format("%06d", new java.util.Random().nextInt(1_000_000));
+    LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(5); // Hiệu lực 5 phút
+
+    // 4. Lưu vết OTP vào bảng otp_verifications (Trường registrationData để trống hoặc lưu chữ "FORGOT")
+    OtpVerification otpRecord = new OtpVerification();
+    otpRecord.setEmail(email);
+    otpRecord.setOtpCode(otp);
+    otpRecord.setRegistrationData("FORGOT_PASSWORD_REQUEST");
+    otpRecord.setExpiryTime(expiryTime);
+    otpVerificationRepository.save(otpRecord);
+
+    // 5. Gửi thư chứa mã khôi phục cho người dùng
+    SimpleMailMessage message = new SimpleMailMessage();
+    message.setTo(email);
+    message.setSubject("[OldBookstore] Khôi phục mật mã tài khoản");
+    message.setText("Xin chào " + user.getFullName() + ",\n\n" +
+            "Hệ thống nhận được yêu cầu thay đổi mật mã từ bạn. Mã OTP của bạn là: " + otp +
+            "\n\nMã có hiệu lực trong 5 phút. Nếu không phải bạn thực hiện, vui lòng bỏ qua thư này.");
+    mailSender.send(message);
+}
+
+@Override
+@Transactional
+public void resetPassword(String email, String otpCode, String newPassword) {
+    // 1. Kiểm tra tính hợp lệ của cặp Email và OTP
+    OtpVerification otpRecord = otpVerificationRepository
+            .findByEmailAndOtpCode(email, otpCode)
+            .orElseThrow(() -> new RuntimeException("Mã xác thực OTP không chính xác!"));
+
+    // 2. Kiểm tra thời hạn OTP
+    if (otpRecord.getExpiryTime().isBefore(LocalDateTime.now())) {
+        otpVerificationRepository.delete(otpRecord);
+        throw new RuntimeException("Mã OTP đã hết hạn! Vui lòng gửi lại yêu cầu.");
+    }
+
+    // 3. Tìm tài khoản và mã hóa mật khẩu mới để cập nhật vào cơ sở dữ liệu
+    User user = userRepository.findByEmail(email)
+            .orElseThrow(() -> new RuntimeException("Hệ thống không tìm thấy tài khoản tương ứng."));
+            
+    user.setPassword(passwordEncoder.encode(newPassword));
+    userRepository.save(user);
+
+    // 4. Giải phóng bản ghi OTP đã sử dụng xong
+    otpVerificationRepository.delete(otpRecord);
+}
 }

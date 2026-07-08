@@ -12,4 +12,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
     
     List<User> findAllByOrderByIdAsc();
+    // Thêm vào trong interface UserRepository
+java.util.Optional<User> findByEmail(String email);
 }
