@@ -60,6 +60,18 @@ public class OrderServiceImpl {
             throw new RuntimeException("Giỏ hàng đang trống. Vui lòng thêm sách trước khi đặt hàng!");
         }
 
+        // Chỉ lấy đúng các CartItem mà client đã chọn để thanh toán
+        List<Long> selectedCartItemIds = dto.getCartItemIds();
+        List<CartItem> itemsToCheckout = (selectedCartItemIds == null || selectedCartItemIds.isEmpty())
+                ? new ArrayList<>(cart.getItems())
+                : cart.getItems().stream()
+                        .filter(ci -> selectedCartItemIds.contains(ci.getId()))
+                        .collect(Collectors.toList());
+
+        if (itemsToCheckout.isEmpty()) {
+            throw new RuntimeException("Không tìm thấy sản phẩm nào được chọn trong giỏ hàng. Vui lòng thử lại!");
+        }
+
         Order order = new Order();
         order.setUser(user);
         order.setFullName(dto.getFullName());
@@ -73,7 +85,7 @@ public class OrderServiceImpl {
         double totalAmount = 0;
         List<OrderItem> orderItems = new ArrayList<>();
 
-        for (CartItem cartItem : cart.getItems()) {
+        for (CartItem cartItem : itemsToCheckout) {
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(order);
             orderItem.setBook(cartItem.getBook());
@@ -82,25 +94,47 @@ public class OrderServiceImpl {
             totalAmount += cartItem.getBook().getPrice() * cartItem.getQuantity();
             orderItems.add(orderItem);
 
-            // Đánh dấu sách đã bán
+            // Tìm sách và thực hiện khóa dòng để đồng bộ kiểm tra tồn kho
             Book book = bookRepository.findByIdForUpdate(cartItem.getBook().getId())
                     .orElseThrow(() -> new RuntimeException("Sách không tồn tại!"));
+            
             if (!"APPROVED".equals(book.getStatus())) {
                 throw new RuntimeException("Sách \"" + book.getTitle() + "\" không còn sẵn sàng để đặt hàng!");
             }
-            book.setStatus("SOLD");
+
+            // === START FIX: KIỂM TRA SỐ LƯỢNG TỒN KHO ===
+            // Đảm bảo số lượng sách trong kho đủ để đáp ứng đơn hàng
+            if (book.getQuantity() == null || book.getQuantity() < cartItem.getQuantity()) {
+                throw new RuntimeException("Sách \"" + book.getTitle() + "\" không đủ số lượng trong kho! (Còn lại: " 
+                        + (book.getQuantity() == null ? 0 : book.getQuantity()) + ")");
+            }
+            
+            // Khấu trừ số lượng tồn kho thực tế của cuốn sách
+            book.setQuantity(book.getQuantity() - cartItem.getQuantity());
+
+            // Nếu số lượng tồn kho giảm về bằng 0 sau khi trừ, đánh dấu trạng thái là SOLD
+            if (book.getQuantity() == 0) {
+                book.setStatus("SOLD");
+            }
+            // === END FIX ===
+
             bookRepository.save(book);
         }
 
+        double shippingFee = (totalAmount >= 300000) ? 0 : 30000;
+
         order.setItems(orderItems);
-        order.setTotalAmount(totalAmount);
+        order.setTotalAmount(totalAmount + shippingFee); 
         order.setPaymentStatus("PENDING");
         order.setOrderStatus("PENDING");
 
+        // Thiết lập mốc thời gian tạo đơn hàng phục vụ cho hiển thị tại Profile
+        order.setCreatedAt(LocalDateTime.now());
+
         Order savedOrder = orderRepository.save(order);
 
-        // Xóa giỏ hàng sau khi đặt hàng thành công
-        cart.getItems().clear();
+        // Chỉ xóa khỏi giỏ hàng đúng những sản phẩm đã đặt mua
+        cart.getItems().removeAll(itemsToCheckout);
         cartRepository.save(cart);
 
         return savedOrder;
@@ -136,7 +170,6 @@ public class OrderServiceImpl {
             vnpParams.put("vnp_CreateDate", vnpCreateDate);
             vnpParams.put("vnp_ExpireDate", vnpExpireDate);
 
-            // Xây dựng chuỗi hash data
             StringBuilder hashData = new StringBuilder();
             StringBuilder query = new StringBuilder();
             Iterator<Map.Entry<String, String>> itr = vnpParams.entrySet().iterator();
@@ -165,7 +198,6 @@ public class OrderServiceImpl {
     public Map<String, Object> handleVnPayReturn(Map<String, String> vnpParams) {
         String vnpSecureHash = vnpParams.remove("vnp_SecureHash");
 
-        // Sắp xếp và xây dựng chuỗi để xác thực
         Map<String, String> sortedParams = new TreeMap<>(vnpParams);
         StringBuilder signData = new StringBuilder();
         Iterator<Map.Entry<String, String>> itr = sortedParams.entrySet().iterator();
@@ -185,7 +217,6 @@ public class OrderServiceImpl {
             String txnRef = vnpParams.get("vnp_TxnRef");
 
             if ("00".equals(responseCode)) {
-                // Thanh toán thành công - cập nhật trạng thái đơn hàng
                 orderRepository.findById(Long.parseLong(txnRef)).ifPresent(order -> {
                     order.setPaymentStatus("PAID");
                     order.setOrderStatus("PROCESSING");
@@ -194,6 +225,26 @@ public class OrderServiceImpl {
                 result.put("success", true);
                 result.put("message", "Thanh toán thành công!");
             } else {
+                // === START FIX OPTIONAL: HOÀN KHO NẾU THANH TOÁN VNPAY THẤT BẠI HOẶC BỊ HỦY GIỮA CHỪNG ===
+                orderRepository.findById(Long.parseLong(txnRef)).ifPresent(order -> {
+                    order.setPaymentStatus("FAILED");
+                    order.setOrderStatus("CANCELLED");
+                    
+                    // Tiến hành hoàn trả lại số lượng kho cho các mặt hàng trong đơn
+                    for (OrderItem item : order.getItems()) {
+                        Book book = item.getBook();
+                        if (book != null) {
+                            if ("SOLD".equals(book.getStatus())) {
+                                book.setStatus("APPROVED");
+                            }
+                            int currentQty = book.getQuantity() != null ? book.getQuantity() : 0;
+                            book.setQuantity(currentQty + item.getQuantity());
+                            bookRepository.save(book);
+                        }
+                    }
+                    orderRepository.save(order);
+                });
+                // === END FIX ===
                 result.put("success", false);
                 result.put("message", "Thanh toán thất bại. Mã lỗi: " + responseCode);
             }
@@ -209,9 +260,7 @@ public class OrderServiceImpl {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
     }
 
-    // Danh sách trạng thái đơn hàng hợp lệ
-    private static final List<String> VALID_ORDER_STATUSES = List.of("PENDING", "PROCESSING", "SHIPPING", "COMPLETED",
-            "CANCELLED");
+    private static final List<String> VALID_ORDER_STATUSES = List.of("PENDING", "PROCESSING", "SHIPPING", "COMPLETED", "CANCELLED");
 
     // Lấy tất cả đơn hàng (Chỉ ADMIN)
     public List<Order> getAllOrders() {
@@ -309,7 +358,7 @@ public class OrderServiceImpl {
         );
     }
 
-    // Cập nhật trạng thái đơn hàng (Chỉ ADMIN)
+    // Cập nhật trạng thái đơn hàng (Chỉ ADMIN / Xử lý hủy đơn hoàn kho)
     @Transactional
     public Order updateOrderStatus(Long orderId, String newStatus) {
         if (newStatus == null || !VALID_ORDER_STATUSES.contains(newStatus.toUpperCase())) {
@@ -319,11 +368,15 @@ public class OrderServiceImpl {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng!"));
 
-        // Không cho phép cập nhật nếu đơn hàng đã hoàn thành
         if ("COMPLETED".equals(order.getOrderStatus())) {
             throw new RuntimeException("Đơn hàng đã giao, không thể thay đổi trạng thái!");
         }
+        
+        if ("CANCELLED".equals(order.getOrderStatus())) {
+            throw new RuntimeException("Đơn hàng đã bị hủy trước đó, không thể thay đổi trạng thái!");
+        }
 
+        String oldStatus = order.getOrderStatus();
         newStatus = newStatus.toUpperCase();
         order.setOrderStatus(newStatus);
 
@@ -332,11 +385,29 @@ public class OrderServiceImpl {
             if (order.getDeliveredAt() == null) {
                 order.setDeliveredAt(LocalDateTime.now());
             }
-            // Nếu COD thì tự động thanh toán
             if ("cod".equalsIgnoreCase(order.getPaymentMethod())) {
                 order.setPaymentStatus("PAID");
             }
         }
+
+        // === START FIX: XỬ LÝ HOÀN KHO KHI ADMIN HOẶC USER HỦY ĐƠN HÀNG ===
+        if ("CANCELLED".equals(newStatus) && !"CANCELLED".equals(oldStatus)) {
+            for (OrderItem item : order.getItems()) {
+                Book book = item.getBook();
+                if (book != null) {
+                    // Nếu sách từng bị chuyển thành SOLD do hết kho, khôi phục lại APPROVED để bán tiếp
+                    if ("SOLD".equals(book.getStatus())) {
+                        book.setStatus("APPROVED");
+                    }
+                    // Cộng trả số lượng sản phẩm lại vào kho dữ liệu
+                    int currentQty = book.getQuantity() != null ? book.getQuantity() : 0;
+                    book.setQuantity(currentQty + item.getQuantity());
+                    bookRepository.save(book);
+                }
+            }
+        }
+        // === END FIX ===
+
         return orderRepository.save(order);
     }
 

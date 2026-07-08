@@ -10,10 +10,13 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
+    
     Optional<Cart> findByUser(User user);
-    Optional<Cart> findByUserId(Long userId);
+    
+    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.user.id = :userId")
+    Optional<Cart> findByUserId(@Param("userId") Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select c from Cart c left join fetch c.items where c.user.id = :userId")
+    @Query("SELECT c FROM Cart c LEFT JOIN FETCH c.items WHERE c.user.id = :userId")
     Optional<Cart> findByUserIdForUpdate(@Param("userId") Long userId);
 }
